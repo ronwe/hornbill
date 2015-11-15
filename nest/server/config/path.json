@@ -1,0 +1,10 @@
+{ 
+"appPath" : "../../apps/",
+"controller" : "controller/" ,
+"lib" : "lib/" ,
+"model" : "model/" ,
+"views" : "views/" ,
+"config" : "config/" ,
+"compiledViews" : "../../.est/",
+"base" : "base/"
+}

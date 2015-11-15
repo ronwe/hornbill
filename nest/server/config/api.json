@@ -1,0 +1,6 @@
+{
+  "hosts" : {
+    "php": "backend"
+  }
+  , "timeout" : 5000
+}

@@ -1,0 +1,10 @@
+{"uploadTmp":false,
+"watchingTpl":true,
+"fussTpl":false,
+"hostID":"0.0.0.0",
+"token":"abcd",
+"hostDefault":{
+	"demo":"welcome"
+},
+"cpuNums":"1",
+"onPort":6001}
