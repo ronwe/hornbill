@@ -173,8 +173,8 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
       var __htm ='';\n";
     var funcCon;
     var pos = 0,
-      posStart = 0,
-      posEnd = 0;
+		posStart = 0,
+		posEnd = 0;
     var bufferLen = data.length;
 
     var comments_mark = 0
@@ -185,18 +185,18 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
     }
 
     while(true) {
-		pos = findTag(data, pos, 60, 37);
+		pos = findTag(data, pos, 60, 37)
 		if(pos > -1) {
-			posEnd = findTag(data, pos + 2, 37, 62);
+			posEnd = findTag(data, pos + 2, 37, 62)
 		} else {
 			fillCmpl(buffer2String(data, posStart, bufferLen)) 
-			break;
+			break
 		}
 		if((pos > -1) && posEnd) {
 			fillCmpl(buffer2String(data, posStart, pos)) 
 			funcCon = data.toString('utf8', pos + 2, posEnd)
-					.replace(/\$_ENGINE_SELF\./g, 'est.');
-					//.replace(/\bthis\./g, dataName + '.')
+						.replace(/\$_ENGINE_SELF\./g, 'est.')
+
 			switch(funcCon[0]) {
 				case '*':
 					switch (funcCon[1]){
@@ -208,34 +208,33 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 							if (comments_mark < 0 ) comments_mark = 0
                             break
                         }	
-					break;
+					break
 				case '=':
 					switch(funcCon[1]) {
 						case '=':
+							fillCmpl( '__htm +=' + stripBlank(funcCon.substr(1)) + ";\n" , true)
+							break
+						default:
 							var _fn_name = '_extFn.html_encode',
-								_func_stripted = stripBlank(funcCon.substr(2));
+								_func_stripted = stripBlank(funcCon.substr(2))
 
 							fillCmpl( '__htm += ' + _fn_name + '(' + _func_stripted + ");\n" , true)
-							break;
-						default:
-							fillCmpl( '__htm +=' + stripBlank(funcCon.substr(1)) + ";\n" , true)
-							break;
+							break
 					}
-					break;
+					break
 				case '#':
-					//fillCmpl( '__htm += est.renderFile("' + tplpath + '" ,"' + funcCon.substr(1).trim() + '",' + dataName + ',null,"' + tplPre + '" )||"";\n' , true)
 					fillCmpl( '__htm += requireFn("' + funcCon.substr(1).trim() + '" )(this)||"";\n' , true)
-					break;
+					break
 				default:
 					fillCmpl( funcCon + ';' , true)
 			}
 
 		}
-		pos = posStart = posEnd + 2;
-		posEnd = 0;
-    };
+		pos = posStart = posEnd + 2
+		posEnd = 0
+    }
 
-    comFileCon += "return __htm;} \n exports.html = __getHtml; ";
+    comFileCon += "return __htm;} \n exports.html = __getHtml; "
     ///console.log(comFileCon);
 
 	function onWriteDone(e) {
