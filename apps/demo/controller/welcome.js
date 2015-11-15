@@ -3,9 +3,9 @@ var controlFns = {
 	'index' : function(id ){
 		var model = this.loadModel('demo.js')
 		this.bindDefault()
-		this.listenOn( model.read, 'model')('from model',{})
+		this.listenOn( model.read, 'model')('a',{})
 		this.listenOver(function(data){	
-			console.log(data )
+			//console.log(data )
 			data.test =  new Date
 			this.render('welcome.html' , data)
 		})

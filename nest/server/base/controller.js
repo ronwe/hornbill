@@ -96,19 +96,19 @@ Controller.prototype = {
         if ( this.req.method == 'POST'){
 			var querys = querystring.stringify(this.req.__get)
             if (querys) remoteUri +=  (remoteUri.indexOf('?') > 0 ?'&' : '?') + querys 
-			data = this.req.__post; 
+			data = this.req.__post 
         }
-        var api = this.getApi(remoteUri , reqAct , method ,rawData);
+        var api = this.getApi(remoteUri , reqAct , method ,rawData)
         return function(evt,passData){
-             api(evt , passData||data);
+        	api(evt , passData||data)
         }
         
     },
 	listenOn : function( toCallMethod , assignTag ){
-        var mSelf = this;
+        var mSelf = this
         return function(){
-            var args = Array.prototype.splice.call(arguments , 0);
-            return mSelf.eventHandle.listenOn( toCallMethod , assignTag , args);
+            var args = Array.prototype.splice.call(arguments , 0)
+            return mSelf.eventHandle.listenOn( toCallMethod , assignTag , args)
 		}
 	} ,
 	listenOver : function(callBack , noPrepare){

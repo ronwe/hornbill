@@ -22,35 +22,38 @@ function listenOver (callBack,noPrepare){
 		,eventOnOver = this.onOver
 	if (noPrepare !== true){
 		initDataKey.map (function(key){
-			eventData[key] = initData[key];
-			});
+			eventData[key] = initData[key]
+		})
 	}
 	function _cbk(){
 		try{
 			if (eventOnOver && false === eventOnOver(eventData)) return
-			callBack(eventData);
+			callBack(eventData)
 		}catch(err){
 			callBack(false , err)
-			}
 		}
+	}
 
 	if (eventCount == 0 ) {
 		_cbk()
-		return;
-		}
+		return
+	}
 	this.listenStack.map(function(item){
 		var toCallMethod = item[0], 
 			assignTag = item[1], 
 			toCallParam	= item[2];	
 
-		var evtPass = function(data){
+		var evtPass = function(err ,data){
+			if(undefined === data){
+				data = err
+			}
 			eventData[assignTag] = data;
 			eventCount--;
 			//console.log (eventCount, assignTag , eventData);
 			if (eventCount <= 0 ) {
 				_cbk()
-				}
 			}
+		}
 		toCallParam.unshift(evtPass);
 		toCallMethod.apply(null , toCallParam);
 	});
