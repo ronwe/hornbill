@@ -41,9 +41,8 @@ if (fs.existsSync('./config/dbini.json')) {
 
 		db.mysql = {
 			master : getSet.bind(null , mysql.master) 
-			,slave : getSet.bind(null , mysql.slave) 
-
-			}
+			,slave : getSet.bind(null , mysql.slave || mysql.master) 
+		}
 		function getSet(sets){
 			if (1 == sets.length) return sets[0]
 			return sets[Math.floor(Math.random() * sets.length)]
