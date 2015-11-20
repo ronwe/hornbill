@@ -170,7 +170,7 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
     var _extFn = require('" + extFnPath + "'); \n \
     function requireFn(tpl) { return est.renderFile('" + tplpath + "' ,tpl , null , null ,'" + tplPre + "' ,true); } ; \n \
     function __getHtml () { \n \
-		var __StaticModel = []; \n \
+		var __StaticModel = this.__StaticModel = this.__StaticModel || []; \n \
 		function StaticModel(type, model){ \n \
 			if (!type) return \n \
 			var static = __StaticModel[type];if(!static) static = __StaticModel[type] = []; \n\
