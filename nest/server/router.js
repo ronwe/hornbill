@@ -35,6 +35,8 @@ function route(request ,response ) {
 	var suffix = path.extname(reqPath)
 	if (suffix) {
 		var staticFile = config.path.appPath  + hostPath + '/static/'  + reqPath
+		var contentType = {'.js': 'application/x-javascript' ,'.css': 'text/css'}[suffix]
+		response.setHeader('content-type', contentType || 'text/plain')
 		fs.createReadStream(staticFile)
 			.on('error' , function(err){
 				response.writeHead(404)
