@@ -151,9 +151,9 @@ function setRnR (req ,res , opt){
 * @param string GET|POST
 */
 function ajaxTo(url, callBack , method){
+	var res = this.res
+		,req = this.req
      if (!callBack ) {
-		var res = this.res
-			,req = this.req
         callBack = function(data , res_state){ 
 			 var status =   false === data ?400: 200
 			 if (4000 <= res_state)  status = res_state
@@ -167,8 +167,8 @@ function ajaxTo(url, callBack , method){
                                         ,'Cache-Control': 'no-cache,no-store'
                                         ,'service' :ServerHead })
 			 base.accessLog(status, req , new Date - req.__request_time)
-             }
-         }
+		 }
+	 }
 
     if (config.api.spamhost && !req.__get.callback && 'string' == typeof url) {
     	url = {

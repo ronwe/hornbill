@@ -13,11 +13,11 @@ exports.accessLog = function (status , req , msg){
 		,logTxt = [status , headers['clientIp'] || headers['x-forwarded-for'] || headers['x-real-ip'] ,
 					req.url , headers.seashell , req.__request_time , msg || ''].join(' | ')
 	mkLog(accessLogId, logTxt)
-	}
+}
 exports.errorLog = function (){
 	var logTxt = new Date + ' | ' + Array.prototype.join.call(arguments , ' | ')
 	mkLog(errorLogId , logTxt)
-	}
+}
 exports.dataErrLog = function(logTxt){
 	mkLog(dataErrLogId , logTxt)
 	
@@ -33,23 +33,23 @@ function mkLog(file , logTxt){
 function format(str , params){
 	params.unshift(str);
 	return util.format.apply(null , params);
-	}
+}
 function cloneObj(obj){
 	var ret = {};
 	for(var keys = Object.keys(obj), l = keys.length; l; --l)
 		 ret[ keys[l-1] ] = obj[ keys[l-1] ];
 
 	return ret;
-	}
+}
 function isUnDefined (varObj){
 	return ('undefined' == typeof varObj);
-	}
+}
 
 
 
 exports.md5 = function md5(str) {
     return str ? cryto.createHash('md5').update(str.toString()).digest("hex") : '';
-    }
+}
 /*
 *继承并创建新对象*/
 exports.inherit = function (clsContruct , supClsObj,  override){
@@ -71,4 +71,8 @@ exports.inherit = function (clsContruct , supClsObj,  override){
             };
        }
 	return clsObj;
+}
+//加载base类库
+exports.loadBase = function(modName){
+    return require(config.path.base + modName)
 }
