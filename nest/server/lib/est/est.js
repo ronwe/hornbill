@@ -220,11 +220,11 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 				case '=':
 					switch(funcCon[1]) {
 						case '=':
-							fillCmpl( '__htm +=' + stripBlank(funcCon.substr(1)) + ";\n" , true)
+							fillCmpl( '__htm +=' + stripBlank(funcCon.substr(2)) + ";\n" , true)
 							break
 						default:
 							var _fn_name = '_extFn.html_encode',
-								_func_stripted = stripBlank(funcCon.substr(2))
+								_func_stripted = stripBlank(funcCon.substr(1))
 
 							fillCmpl( '__htm += ' + _fn_name + '(' + _func_stripted + ");\n" , true)
 							break
