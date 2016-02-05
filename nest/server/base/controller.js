@@ -197,7 +197,7 @@ function ajaxTo(url, callBack , method){
 }
 
 function render(tplName , data , callBack){
-	//var tplName = config.path.views + this.appPath + tplName;
+	//var tplName = config.path.views + this.hostPath + tplName;
     // var st = new Date;
 	if (this.req.__get['__pd__']){
 		//show snake data  
@@ -222,14 +222,14 @@ function render(tplName , data , callBack){
 				base.accessLog(err? 503 : 200, req , new Date - req.__request_time)
 			}
 		}
-        var tplPre = tplPreCache[this.appPath] || (tplPreCache[this.appPath] = this.appPath.replace(/\//g,'') ); 
+        var tplPre = tplPreCache[this.hostPath] || (tplPreCache[this.hostPath] = this.hostPath.replace(/\//g,'') );
 		if (!data) data = {};
 		data['_Request_query'] = this.req.__get;
 		data['_Request_cookies'] = this.req.__cookies;
 		data['_Request_raw'] = {'url': this.req.url 
 			, 'dataSouce' : this.req.dataSource||{}
 			,'query' : this.req.__get};
-		var tplPath = config.path.appPath +   this.appPath + config.path.views
+		var tplPath = config.path.appPath +   this.hostPath + config.path.views
         est.renderFile(tplPath ,tplName , data , callBack , tplPre );
         //jst.renderFile(tplName, data , callBack );
 
@@ -249,11 +249,11 @@ exports.__create = function (mod , extFn){
 		for (var k in extFn)  mod.prototype[k] = extFn[k]
 	}
 			
-	return function(modName, appPath){
+	return function(modName, hostPath){
 		modObj =  new mod	
 
         modObj.eventname = modName
-        modObj.appPath = appPath
+        modObj.hostPath = hostPath
         //modObj.eventHandle = eventLib.__create(modName ,siteInfo);
         modObj.eventHandle = eventLib.__create()
 
