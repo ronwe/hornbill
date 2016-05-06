@@ -1,13 +1,21 @@
 var fs = require('fs')
     ,path = require('path')
 var _depencies_cache = {}
+const STATUS = {
+    'LOADING' : 1
+    ,'LOADED' : 2
+}
+
 
 function getDepencies(context){
-    var reg = /(?:\s*=\s*)?require\(['"]\w+['"]\)/g
     var deps = []
-    context =  context 
-    var r = context.match(reg)
-    console.log(r)
+    context =  context.replace(/(\/\*[\w\'\s\r\n\*]*\*\/)|(\/\/[\w\s\']*)/g,'') 
+    var reg = /\brequire\(['"]([a-z0-9-_\.]+)['"]\)/mg
+
+    while ( mod = reg.exec(context) ) {
+        mod = mod[1].replace(/\.js$/i,'')
+        deps.push(mod)
+    }
  
     return deps 
 }
@@ -15,19 +23,26 @@ function getDepencies(context){
 function putInLoadStack(stack , mod){
     if (stack.indexOf(mod) === -1) stack.push(mod)
 }
+
 function rmFrmLoadStack(stack , mod){
     var i = stack.indexOf(mod)
     if (i !== -1) stack.splice(i,1)
 }
-function loadMod(modPath , modName ,load_stack , cbk ){
+
+function loadMod(modPath , modName ,load_stack , _mods_state , cbk ){
+    if (_mods_state[modName]) return
     putInLoadStack(load_stack , modName)
+    _mods_state[modName] =  STATUS.LOADING
     var mod_full_path = modPath + '/js/' + modName + '.js'
     fs.readFile(mod_full_path, (err , data) => {
-        if (err) return cbk(err)
+        if (err) data = '/*' + err.toString() + '*/'
         data = data.toString()
         var depencies = getDepencies(data)  || []    
         rmFrmLoadStack(load_stack,modName)
-        depencies.forEach(dep_mod => loadMod(modPath, dep_mod,load_stack ,cbk))
+        depencies.forEach(dep_mod => loadMod(modPath, dep_mod,load_stack , _mods_state , cbk))
+
+        _mods_state[modName] =  STATUS.LOADED
+
         cbk(null , 'define("' + modName + '" , ' + JSON.stringify(depencies)+ ' , function(require ,exports){ \n' + data + ' \n})')
     }) 
 }
@@ -43,6 +58,7 @@ exports.compile = function(opt , cbk){
 
     var output = []
         ,load_stack = []
+        ,_mods_state = {}
     function assemble(err , context){
         if (err) context = '<!--' + err.toString() + '-->' 
         output.unshift(context) 
@@ -51,5 +67,5 @@ exports.compile = function(opt , cbk){
         }
     }
 
-    mods.forEach( _m => loadMod(modPath , _m.replace(/\.{2,}/g, '')  , load_stack , assemble ))
+    mods.forEach( _m => loadMod(modPath , _m.replace(/\.{2,}/g, '')  , load_stack , _mods_state , assemble ))
 }
