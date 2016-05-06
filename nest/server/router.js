@@ -1,19 +1,16 @@
 var fs = require("fs"),
     url = require('url'),
     path = require('path'),
-    querystring = require('querystring');
-var config = require('./config.js'); 
+    querystring = require('querystring')
+var config = require('./config.js') 
 
-config.setAbsPath( __dirname.replace(/\\/g,'/') );
-global.config = config;
-global.base = require(config.path.base + 'base.js');
-global.controller = require(config.path.base + 'controller.js');
-
-
-
-var lookuped = {};
+config.setAbsPath( __dirname.replace(/\\/g,'/') )
+global.config = config
+global.base = require(config.path.base + 'base.js')
+global.controller = require(config.path.base + 'controller.js')
 
 
+var lookuped = {}
 
 function route(request ,response ) {
     //console.log('%s / %s' ,request.headers.host  , request.url );
@@ -25,7 +22,9 @@ function route(request ,response ) {
 	    response.end('url is wrong')
 		return	
 	}
+
     var virtualHostName = config.virtualHost[reqUrl.hostname]
+    //TODO 根据一级目录查找hostPath
 	var hostPath =   virtualHostName || ''
 	if (hostPath) hostPath += '/' 
 
@@ -34,20 +33,35 @@ function route(request ,response ) {
 	//有后缀名的是静态文件 pipe to static
 	var suffix = path.extname(reqPath)
 	if (suffix) {
-		var staticFile = config.path.appPath  + hostPath + '/static/'  + reqPath
-		var contentType = {'.js': 'application/x-javascript' ,'.css': 'text/css'}[suffix]
-		response.setHeader('content-type', contentType || 'text/plain')
-		fs.createReadStream(staticFile)
-			.on('error' , function(err){
-				response.writeHead(404)
-				response.end(err.toString())
-			})
-			.pipe(response)
+        // 查找对应compiler    
+        var contentType = {'.js': 'application/x-javascript' ,'.css': 'text/css'}[suffix]
+        response.setHeader('content-type', contentType || 'text/plain')
+
+        var staticCompiler = path.resolve(config.path.lib ,'compiler' , suffix.slice(1) + '.js') 
+        if (config.etc.compiler && '~' === reqPath.slice(0,1)  && fs.existsSync( staticCompiler ) ) {
+            require(staticCompiler).compile({ 'modPath' : config.path.appPath  + hostPath + '/static/' , 'mods' : reqPath.slice(1) } , function(err , context){
+                if (err) {
+                    response.writeHead(404)
+                    response.end(err.toString())
+                } else {
+                    response.end(context.toString())
+                }
+            })
+            
+        } else { 
+
+            var staticFile = config.path.appPath  + hostPath + '/static/'  + reqPath
+            fs.createReadStream(staticFile)
+                .on('error' , function(err){
+                    response.writeHead(404)
+                    response.end(err.toString())
+                })
+                .pipe(response)
+         }
 		return
 	}
 
-	request.__request_time = new Date
-    request.__get = {};
+    request.__get = {}
 	for (var k in reqUrl.query){
 		request.__get[k.replace(/[<>%\'\"]/g,'')] = reqUrl.query[k]
 	}

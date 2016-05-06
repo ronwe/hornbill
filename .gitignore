@@ -1,2 +1,3 @@
-
+*.swp
 nest/server/config/pids
+*.DS_store

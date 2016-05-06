@@ -6,5 +6,6 @@
 "hostDefault":{
 	"demo":"welcome"
 },
+"compiler" : true ,
 "cpuNums":"1",
 "onPort":6001}
