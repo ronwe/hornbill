@@ -43,7 +43,7 @@ function loadMod(modPath , modName ,load_stack , _mods_state , cbk ){
 
         _mods_state[modName] =  STATUS.LOADED
 
-        cbk(null , 'define("' + modName + '" , ' + JSON.stringify(depencies)+ ' , function(require ,exports){ \n' + data + ' \n})')
+        cbk(null , 'define("' + modName + '" , ' + JSON.stringify(depencies)+ ' , function(require ,exports ,module){ \n' + data + ' \n})')
     }) 
 }
 
