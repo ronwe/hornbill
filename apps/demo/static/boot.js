@@ -172,7 +172,7 @@
             name = apath.join('/')
         }
 
-        if (-1 == name.indexOf('/') ) name += '/index'
+        //if (-1 == name.indexOf('/') ) name += '/.index'
         return name
         ///return name.replace(/\//g,'::')
     }
@@ -230,22 +230,25 @@
                 define(modOrign , depencies , con)
             })
 
-            if (toLoad.length) loadJS(rrConfig.staticServer[ns] + '/mod/js/' + toLoad.join(':') + '?' + global.rrConfig.rrVersion)
+            if (toLoad.length) {
+                console.log('miss' , toLoad)
+            }
             return
         }
 
         var exports = {}
-            ,module = {exports : null}
+            ,module = {exports : undefined}
 
         var ret = con(function(inMod){ return require(inMod , mod ,ns)}, exports , module) 
-        mods[modNS] = module.exports || exports || ret
+        mods[modNS] = module.exports 
+        if (undefined === module.exports) mods[modNS] =  exports || ret
         modDefining[modNS] = DEFINESTAT.DEFINED 
 
         emitter.emit(modNS + ':defined')
     }
 
     function isModLoaded(mod , ns){
-        var modNS = mod 
+        var modNS = trnName(mod) 
         if (ns) modNS += '@' + ns
         return  (modNS in mods)
     }
@@ -253,4 +256,80 @@
     global.require = require
     global.define = define
     global.isModLoaded = isModLoaded
+    
+    function appendFix(obj , stuffix){
+        var util = global.util
+        if (util.isArray(obj)){
+            obj = obj.map(function (item){
+                return item + stuffix
+            })
+        } else if (util.detectType(obj,'String')){
+            obj += stuffix
+        }
+        return obj
+    }
+
+    ~function(){
+        var async_mod = []
+            ,async_timer
+            ,async_event = []
+        global.asyncLoad = function(mod , cbk){
+
+            function onLoad(){
+                var inst 
+                if (is_multi){
+                    inst = {}
+                    mod.forEach(function(m){
+                        inst[m] = require(m)
+                    })
+                } else {
+                    inst = require(mod)
+                }
+                cbk.call(inst)
+            }
+
+            var is_multi = global.util.isArray(mod)
+            if (!is_multi) mod = [mod]     
+            var need_load = []
+            mod.forEach(function(m){
+                if (!isModLoaded(m)) need_load.push(m)
+            })
+            if (0 === need_load.length) {
+                return onLoad()
+            } else {
+                mod = need_load
+            }
+
+            if (cbk) emitter.on(appendFix(mod , ':defined') , onLoad)
+
+            mod.forEach(function(m){
+                if (async_mod.indexOf(m) === -1) async_mod.push(m)
+            })
+
+            async_timer && global.clearTimeout(async_timer)
+            async_timer = global.setTimeout(function(){
+                loadJS(
+                     '/~' + async_mod.join('+') + '.js' 
+                      /*
+                     , {
+                        'onLoad' : 
+                         function(){
+                            global.nextTick(function(){
+                                async_event.forEach(function(evt){
+                                    var mod = evt[0]
+                                    if (isModLoaded(mod)){ 
+                                        var inst = require(mod)
+                                        evt[1].call(inst)
+                                    } else {
+                                        throw mod + ' is not defined'
+                                    }
+                                })
+                            })
+                         }
+                       }
+                       */
+                     )
+            } , 0)
+        }
+    }()
 })(this)

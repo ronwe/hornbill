@@ -1,5 +1,10 @@
 <script src="/boot.js"></script>
-<script src="/~a+b.js"></script>
+<script>
+asyncLoad('a' , function(){
+    console.log('page',this)
+}) 
+</script>
+<script type="text/plain"  xsrc="/~a+b.js"></script>
 <%
 OutputWrite(StaticModel('js'))
 %>
