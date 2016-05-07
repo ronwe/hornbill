@@ -1,7 +1,13 @@
 <script src="/boot.js"></script>
 <script>
 asyncLoad('a' , function(){
-    console.log('page',this)
+    console.log('page->a',this)
+}) 
+asyncLoad('b' , function(){
+    console.log('page->b',this)
+}) 
+asyncLoad(['a','b'] , function(){
+    console.log('page->a,b',this)
 }) 
 </script>
 <script type="text/plain"  xsrc="/~a+b.js"></script>
