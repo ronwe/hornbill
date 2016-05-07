@@ -39,7 +39,9 @@ function route(request ,response ) {
 
         var staticCompiler = path.resolve(config.path.lib ,'compiler' , suffix.slice(1) + '.js') 
         if (config.etc.compiler && '~' === reqPath.slice(0,1)  && fs.existsSync( staticCompiler ) ) {
-            require(staticCompiler).compile({ 'modPath' : config.path.appPath  + hostPath + '/static/' , 'mods' : reqPath.slice(1) } , function(err , context){
+            require(staticCompiler).compile(
+                { 'modPath' : config.path.appPath  + hostPath + '/static/' , 'mods' : reqPath.slice(1) ,'loadDepency' : config.etc.loadDepency } 
+                , function(err , context){
                 if (err) {
                     response.writeHead(404)
                     response.end(err.toString())

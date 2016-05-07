@@ -29,7 +29,7 @@ function rmFrmLoadStack(stack , mod){
     if (i !== -1) stack.splice(i,1)
 }
 
-function loadMod(modPath , modName ,load_stack , _mods_state , cbk ){
+function loadMod(modPath , modName ,load_stack , _mods_state , _bool_load_depency ,cbk ){
     if (_mods_state[modName]) return
     putInLoadStack(load_stack , modName)
     _mods_state[modName] =  STATUS.LOADING
@@ -39,7 +39,8 @@ function loadMod(modPath , modName ,load_stack , _mods_state , cbk ){
         data = data.toString()
         var depencies = getDepencies(data)  || []    
         rmFrmLoadStack(load_stack,modName)
-        depencies.forEach(dep_mod => loadMod(modPath, dep_mod,load_stack , _mods_state , cbk))
+
+        _bool_load_depency && depencies.forEach(dep_mod => loadMod(modPath, dep_mod,load_stack , _mods_state , _bool_load_depency , cbk))
 
         _mods_state[modName] =  STATUS.LOADED
 
@@ -55,6 +56,7 @@ exports.compile = function(opt , cbk){
     */
     var mods = opt.mods.slice(0 , opt.mods.lastIndexOf('.')).split('+') 
         ,modPath = opt.modPath
+        ,loadDepency = opt.loadDepency
 
     var output = []
         ,load_stack = []
@@ -67,5 +69,5 @@ exports.compile = function(opt , cbk){
         }
     }
 
-    mods.forEach( _m => loadMod(modPath , _m.replace(/\.{2,}/g, '')  , load_stack , _mods_state , assemble ))
+    mods.forEach( _m => loadMod(modPath , _m.replace(/\.{2,}/g, '')  , load_stack , _mods_state , loadDepency ,  assemble ))
 }

@@ -7,5 +7,6 @@
 	"demo":"welcome"
 },
 "compiler" : true ,
+"loadDepency" : false,
 "cpuNums":"1",
 "onPort":6001}

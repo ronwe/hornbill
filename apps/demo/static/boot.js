@@ -1,3 +1,4 @@
+var ENV = 'DEV' // 'DEV' 'PRODUCT'
 ;(function(global ,undefined){
     var index = 0
     global.nextTick = function(fn , ttl){
@@ -231,7 +232,14 @@
             })
 
             if (toLoad.length) {
-                console.log('miss' , toLoad)
+                loadMod(toLoad)
+                /* 
+                if (ENV === 'DEV'){
+                    loadMod(toLoad)
+                } else {
+                    console.log('miss' , toLoad)
+                }
+                */
             }
             return
         }
@@ -253,6 +261,17 @@
         return  (modNS in mods)
     }
 
+    function loadMod(mods){
+        if (! global.util.isArray(mods)) mods = [mods]
+        if (ENV === 'DEV'){
+            mods.forEach(function(m){
+                loadJS('/~' + m + '.js') 
+            })
+        } else {
+           loadJS('/~' + mods.join('+') + '.js') 
+        }
+    }
+
     global.require = require
     global.define = define
     global.isModLoaded = isModLoaded
@@ -272,7 +291,6 @@
     ~function(){
         var async_mod = []
             ,async_timer
-            ,async_event = []
         global.asyncLoad = function(mod , cbk){
 
             function onLoad(){
@@ -306,11 +324,14 @@
                 if (async_mod.indexOf(m) === -1) async_mod.push(m)
             })
 
+            //开发模式js加载器加载 ， 生产模式服务器打包加载
             async_timer && global.clearTimeout(async_timer)
             async_timer = global.setTimeout(function(){
+                            loadMod(async_mod)
+                        } , 0)
+                      /*
                 loadJS(
                      '/~' + async_mod.join('+') + '.js' 
-                      /*
                      , {
                         'onLoad' : 
                          function(){
@@ -327,9 +348,8 @@
                             })
                          }
                        }
-                       */
                      )
-            } , 0)
+                       */
         }
     }()
 })(this)
