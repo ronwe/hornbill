@@ -1,4 +1,3 @@
-var ENV = 'DEV' // 'DEV' 'PRODUCT'
 ;(function(global ,undefined){
     var index = 0
     global.nextTick = function(fn , ttl){
@@ -145,8 +144,13 @@ var ENV = 'DEV' // 'DEV' 'PRODUCT'
     var mods = {}
         ,modDefining = {}
         ,inteligent = {}
+        ,requireRef = {}
+        ,bootOpt = {"serverHost" : "/~" 
+                    ,"ENV" : "PRODUCT" // 'DEV' 'PRODUCT'
+                    }
 
     function require(mod , callerMod ,ns){
+        if (requireRef[mod]) return requireRef[mod]
         if (util.detectType(mod , 'Function')) {
             mod = inteligent[mod] 
         }
@@ -186,6 +190,8 @@ var ENV = 'DEV' // 'DEV' 'PRODUCT'
         if (ns) modNS += '@' + ns
 
         if (modNS in mods) return
+        if (modNS in requireRef) return
+
         modDefining[modNS] = DEFINESTAT.DEFINING 
 
         opt = opt || {}
@@ -258,23 +264,37 @@ var ENV = 'DEV' // 'DEV' 'PRODUCT'
     function isModLoaded(mod , ns){
         var modNS = trnName(mod) 
         if (ns) modNS += '@' + ns
-        return  (modNS in mods)
+        return  (modNS in requireRef) || (modNS in mods)
     }
 
     function loadMod(mods){
         if (! global.util.isArray(mods)) mods = [mods]
-        if (ENV === 'DEV'){
+        if (bootOpt.ENV === 'DEV'){
             mods.forEach(function(m){
-                loadJS('/~' + m + '.js') 
+                loadJS(bootOpt.serverHost + m + '.js') 
             })
         } else {
-           loadJS('/~' + mods.join('+') + '.js') 
+           loadJS(bootOpt.serverHost + mods.join('+') + '.js') 
         }
     }
 
-    global.require = require
-    global.define = define
-    global.isModLoaded = isModLoaded
+    global.booter = {
+        "require" : require
+        ,"define" : define
+        ,"isModLoaded" : isModLoaded
+        ,"option" : 
+        function(opt ,optval){
+            if (!opt) return  bootOpt
+            if (undefined !== optval) return bootOpt[opt] = optval 
+            for (var k in opt) bootOpt[k] = opt[k]
+            return this
+        } 
+        ,"ref" : 
+        function(mod , globalRef){
+            requireRef[mod] = globalRef     
+            return this    
+        }
+    }
     
     function appendFix(obj , stuffix){
         var util = global.util
@@ -291,7 +311,7 @@ var ENV = 'DEV' // 'DEV' 'PRODUCT'
     ~function(){
         var async_mod = []
             ,async_timer
-        global.asyncLoad = function(mod , cbk){
+        global.booter.asyncLoad = function(mod , cbk){
 
             function onLoad(){
                 var inst 
@@ -329,27 +349,7 @@ var ENV = 'DEV' // 'DEV' 'PRODUCT'
             async_timer = global.setTimeout(function(){
                             loadMod(async_mod)
                         } , 0)
-                      /*
-                loadJS(
-                     '/~' + async_mod.join('+') + '.js' 
-                     , {
-                        'onLoad' : 
-                         function(){
-                            global.nextTick(function(){
-                                async_event.forEach(function(evt){
-                                    var mod = evt[0]
-                                    if (isModLoaded(mod)){ 
-                                        var inst = require(mod)
-                                        evt[1].call(inst)
-                                    } else {
-                                        throw mod + ' is not defined'
-                                    }
-                                })
-                            })
-                         }
-                       }
-                     )
-                       */
+            return this
         }
     }()
 })(this)
