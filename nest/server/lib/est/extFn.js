@@ -1,15 +1,19 @@
+var fs = require('fs')
+    ,path = require('path')
+
+var plugins = fs.readdirSync(path.resolve(__dirname,'plugin'))
+var _plug = {}
+plugins.forEach(function(plug){
+    var ext = path.extname(plug)
+    if ('.js' != ext && '.json' != ext) return
+    var plugfn = require(path.resolve(__dirname,'plugin',plug))
+    
+    _plug[plug.replace(ext,'')] = plugfn 
+})
+exports.plugin = _plug
+
 exports.html_encode = function(str){
 	str = str || "";
-	/*s = s || "";
-	return s.replace(/"'<>/g , function(s){
-		switch(s) {
-			case '"': return '&quot;';
-			case "'": return '&#39;';
-			case "<": return "&lt;";
-			case ">": return "&gt;";
-			default: return s;
-		}
-	});*/
 	return str.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
@@ -17,13 +21,6 @@ exports.url_encode = function(str){
 	return encodeURIComponent(str);
 }
 
-
-exports.mSubstr = function(str , len , pad){
-	if (!str || 0 == str.length) return '';
-	if (undefined == pad ) pad = '...';
-	len = getStringLengthArr(str , len);
-	return str.substr( 0 , len) + ((pad && str.length> len) ? pad : '');
-}
 
 exports.nl2br = function(html){
 	if(typeof html != 'string') {

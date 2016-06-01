@@ -1,0 +1,33 @@
+<%= this.piece %>
+<% 
+var inst_code = ''
+    ,mods = []
+this.piece.forEach( p => {
+    mods.push(p.piece)
+    var props = JSON.stringify(p.props)
+    inst_code += `
+    var xx = require("${p.piece}");
+    console.log(xx);
+    var xx_ref = ReactDOM.render(React.createElement(xx.__esModule?xx.default:xx, 
+    ${props}), document.getElementById('example'));
+    `
+})
+%>
+<div id="example"></div>
+<script src="/boot.js"></script>
+<script src="/react.js"></script>
+<script src="/react-dom.js"></script>
+sdfsd
+<link rel="stylesheet" href="//127.0.0.1:8888/css/<%= encodeURIComponent(mods.join('+'))%>">
+<script src="//127.0.0.1:8888/js/<%= encodeURIComponent(mods.join('+'))%>"></script>
+
+<script>
+<%== inst_code%>
+</script>
+<script>
+
+asyncLoad('a' , function(){
+    console.log('page->a',this)
+}) 
+</script>
+<%* console.log(_extFn.plugin.wigimport.trans(this.piece))%>

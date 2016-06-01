@@ -9,4 +9,8 @@
 "compiler" : true ,
 "loadDepency" : false,
 "cpuNums":"1",
+"compile" : {
+    ".js" : {"compiler" : "combo.js" ,"contentType" : "application/x-javascript"}
+    ,".css" : {"contentType" : "text/css" }
+},
 "onPort":6001}

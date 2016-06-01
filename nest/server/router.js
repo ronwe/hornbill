@@ -32,15 +32,16 @@ function route(request ,response ) {
     var reqPath =   reqUrl.pathname.substr(1)
 	//有后缀名的是静态文件 pipe to static
 	var suffix = path.extname(reqPath)
-	if (suffix) {
+    var suffix_conf = config.etc.compile[suffix]
+	if (suffix && suffix_conf) {
         // 查找对应compiler    
-        var contentType = {'.js': 'application/x-javascript' ,'.css': 'text/css'}[suffix]
-        response.setHeader('content-type', contentType || 'text/plain')
+        response.setHeader('content-type', suffix_conf.contentType || 'text/plain')
 
-        var staticCompiler = path.resolve(config.path.lib ,'compiler' , suffix.slice(1) + '.js') 
+        var staticCompiler = suffix_conf.compiler 
+        if (staticCompiler) staticCompiler = path.resolve(config.path.lib ,'compiler' , staticCompiler) 
         if (config.etc.compiler && '~' === reqPath.slice(0,1)  && fs.existsSync( staticCompiler ) ) {
             require(staticCompiler).compile(
-                { 'modPath' : config.path.appPath  + hostPath + '/static/' , 'mods' : reqPath.slice(1) ,'loadDepency' : config.etc.loadDepency } 
+                { 'modPath' : config.path.appPath  + hostPath + '/static/' , 'mods' : reqPath.slice(1)  } 
                 , function(err , context){
                 if (err) {
                     response.writeHead(404)

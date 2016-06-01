@@ -7,10 +7,11 @@ const STATUS = {
 }
 
 
+const LoadDepency = config.etc.loadDepency
 function getDepencies(context){
     var deps = []
     context =  context.replace(/(\/\*[\w\'\s\r\n\*]*\*\/)|(\/\/[\w\s\']*)/g,'') 
-    var reg = /\brequire\(['"]([a-z0-9-_\.]+)['"]\)/mg
+    var reg = /\brequire\(['"]([a-z0-9\-_\.\/]+)['"]\)/mg
 
     while ( mod = reg.exec(context) ) {
         mod = mod[1].replace(/\.js$/i,'')
@@ -56,7 +57,6 @@ exports.compile = function(opt , cbk){
     */
     var mods = opt.mods.slice(0 , opt.mods.lastIndexOf('.')).split('+') 
         ,modPath = opt.modPath
-        ,loadDepency = opt.loadDepency
 
     var output = []
         ,load_stack = []
@@ -69,5 +69,5 @@ exports.compile = function(opt , cbk){
         }
     }
 
-    mods.forEach( _m => loadMod(modPath , _m.replace(/\.{2,}/g, '')  , load_stack , _mods_state , loadDepency ,  assemble ))
+    mods.forEach( _m => loadMod(modPath , _m.replace(/\.{2,}/g, '')  , load_stack , _mods_state , LoadDepency,  assemble ))
 }

@@ -7,7 +7,6 @@ var compiledFolder = '',
 	watchingTpl = true;
 var htmlend = '\\n',
 	fuss = false;
-var dataName = '_data'
 
 var extFnPath = __dirname + '/extFn.js';
 
@@ -203,7 +202,6 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 		if((pos > -1) && posEnd) {
 			fillCmpl(buffer2String(data, posStart, pos)) 
 			funcCon = data.toString('utf8', pos + 2, posEnd)
-						.replace(/\$_ENGINE_SELF\./g, 'est.')
 
 			switch(funcCon[0]) {
 				case '*':
