@@ -33,11 +33,11 @@ function route(request ,response ) {
 	//有后缀名的是静态文件 pipe to static
 	var suffix = path.extname(reqPath)
     var suffix_conf = config.etc.compile[suffix]
-	if (suffix && suffix_conf) {
+	if (suffix  ) {
         // 查找对应compiler    
-        response.setHeader('content-type', suffix_conf.contentType || 'text/plain')
+        if (suffix_conf) response.setHeader('content-type', suffix_conf.contentType || 'text/plain')
 
-        var staticCompiler = suffix_conf.compiler 
+        var staticCompiler = suffix_conf && suffix_conf.compiler 
         if (staticCompiler) staticCompiler = path.resolve(config.path.lib ,'compiler' , staticCompiler) 
         if (config.etc.compiler && '~' === reqPath.slice(0,1)  && fs.existsSync( staticCompiler ) ) {
             require(staticCompiler).compile(
