@@ -93,7 +93,8 @@ function route(request ,response ) {
 	//console.log(mods)
 
 
-	modPath = config.path.appPath  + hostPath + SEP + 'controller' + SEP  + (modUriSeg.length ? modUriSeg.join('/')+'/' : '')
+	modPath = config.path.appPath  + hostPath + SEP + 'controller' +
+             SEP  + (modUriSeg.length ? modUriSeg.join(SEP) + SEP  : '')
 	delete modUriSeg 
 	
 	var modName = mods[0] + '.js'
