@@ -11,7 +11,7 @@ const LoadDepency = config.etc.loadDepency
 function getDepencies(context){
     var deps = []
     context =  context.replace(/(\/\*[\w\'\s\r\n\*]*\*\/)|(\/\/[\w\s\']*)/g,'') 
-    var reg = /\brequire\(['"]([a-z0-9\-_\.\/]+)['"]\)/mg
+    var reg = /\brequire\(['"]([a-zA-Z0-9\-_\.\/]+)['"]\)/mg
 
     while ( mod = reg.exec(context) ) {
         mod = mod[1].replace(/\.js$/i,'')
@@ -34,7 +34,7 @@ function loadMod(modPath , modName ,load_stack , _mods_state , _bool_load_depenc
     if (_mods_state[modName]) return
     putInLoadStack(load_stack , modName)
     _mods_state[modName] =  STATUS.LOADING
-    var mod_full_path = modPath + '/js/' + modName + '.js'
+    var mod_full_path = modPath + '/cjs/' + modName + '.js'
     fs.readFile(mod_full_path, (err , data) => {
         if (err) data = '/*' + err.toString() + '*/'
         data = data.toString()

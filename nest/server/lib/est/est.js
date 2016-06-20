@@ -7,8 +7,8 @@ var compiledFolder = '',
 	watchingTpl = true;
 var htmlend = '\\n',
 	fuss = false;
-
-var extFnPath = __dirname + '/extFn.js';
+const SEP = path.sep
+var extFnPath = __dirname + SEP + 'extFn.js';
 
 function watchTpl(tplname , compiledFile) {
   //var dir = path.dirname(tplname);
@@ -33,7 +33,7 @@ function watchTpl(tplname , compiledFile) {
 }
 
 function getCompiledName(tplname, tplPre) {
-	  return compiledFolder + (tplPre || '') + md5.createHash('md5').update(tplname).digest("hex") + '.est';
+	return compiledFolder + (tplPre || '') + md5.createHash('md5').update(tplname).digest("hex") + '.est';
 }
 
 
@@ -98,6 +98,7 @@ function renderFile(tplpath, tplname, data, callBack, tplPre, requireFn) {
 	if(watchingTpl) watchTpl(tplname , compiledFile)
 
 	var _clearCache = function(file) {
+		
 		var _getHtml = require(file).html
 		if (typeof _getHtml !== 'function') {
 			delete require.cache[file]
@@ -159,15 +160,19 @@ function renderFile(tplpath, tplname, data, callBack, tplPre, requireFn) {
 
 function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
   console.log('----------compile--', tplname);
+  var est_path = config.path.lib + 'est' + SEP +'est.js'
+  function winPath(str){
+  	return str.replace(/\\/g , '\\\\')
+  }
 
   function trsTpl(err, data) {
 
     if(!data) return;
     //// function html_encode(str){return str.replace(/&/, '&amp;').replace(/</g, '&lt;').replace(/\"/g, '&quot;').replace(/'/g, '&#039;'); } ;\n \
     var comFileCon = "/*--" + tplname + "--*/ \n \
-    var est = require(config.path.lib + 'est/est.js'); \n \
-    var _extFn = require('" + extFnPath + "'); \n \
-    function requireFn(tpl) { return est.renderFile('" + tplpath + "' ,tpl , null , null ,'" + tplPre + "' ,true); } ; \n \
+    var est = require( '"+ winPath(est_path) +"'); \n \
+    var _extFn = require('" + winPath(extFnPath) + "'); \n \
+    function requireFn(tpl) { return est.renderFile('" + winPath(tplpath) + "' ,tpl , null , null ,'" + tplPre + "' ,true); } ; \n \
     function __getHtml () { \n \
 		var __StaticModel = this.__StaticModel = this.__StaticModel || {}; \n \
 		function StaticModel(type, model){ \n \

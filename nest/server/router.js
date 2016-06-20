@@ -4,12 +4,16 @@ var fs = require("fs"),
     querystring = require('querystring')
 var config = require('./config.js') 
 
-config.setAbsPath( __dirname.replace(/\\/g,'/') )
+//config.setAbsPath( __dirname.replace(/\\/g,'/') )
+config.setAbsPath( __dirname)
 global.config = config
 global.base = require(config.path.base + 'base.js')
 global.controller = require(config.path.base + 'controller.js')
 
-
+const SEP = path.sep
+if (!fs.existsSync(config.path.compiledViews)){
+    require('child_process').execSync('mkdir -p ' + config.path.compiledViews)
+}
 var lookuped = {}
 
 function route(request ,response ) {
@@ -26,7 +30,7 @@ function route(request ,response ) {
     var virtualHostName = config.virtualHost[reqUrl.hostname]
     //TODO 根据一级目录查找hostPath
 	var hostPath =   virtualHostName || ''
-	if (hostPath) hostPath += '/' 
+	if (hostPath) hostPath += SEP 
 
 
     var reqPath =   reqUrl.pathname.substr(1)
@@ -89,7 +93,7 @@ function route(request ,response ) {
 	//console.log(mods)
 
 
-	modPath = config.path.appPath  + hostPath + '/controller/'  + (modUriSeg.length ? modUriSeg.join('/')+'/' : '')
+	modPath = config.path.appPath  + hostPath + SEP + 'controller' + SEP  + (modUriSeg.length ? modUriSeg.join('/')+'/' : '')
 	delete modUriSeg 
 	
 	var modName = mods[0] + '.js'

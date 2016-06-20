@@ -19,7 +19,7 @@ start(router.route , config.etc.onPort || 8888)
 
 if (config.etc.watchingTpl){
     var watcher = require("./lib/watchNode.js");
-    var absDir = __dirname.replace(/\\/g,'/');
+    var absDir = __dirname
     watcher.takeCare([config.path.appPath  ] );
     //watcher.takeCare([config.path.appPath , absDir + "/base" ,absDir + "/lib"] );
 }

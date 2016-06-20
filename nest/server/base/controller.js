@@ -222,7 +222,7 @@ function render(tplName , data , callBack){
 				base.accessLog(err? 503 : 200, req , new Date - req.__request_time)
 			}
 		}
-        var tplPre = tplPreCache[this.hostPath] || (tplPreCache[this.hostPath] = this.hostPath.replace(/\//g,'') );
+        var tplPre = tplPreCache[this.hostPath] || (tplPreCache[this.hostPath] = this.hostPath.replace(/\//g,'').replace(/\\/g,'') );
 		if (!data) data = {};
 		data['_Request_query'] = this.req.__get;
 		data['_Request_cookies'] = this.req.__cookies;
@@ -230,6 +230,7 @@ function render(tplName , data , callBack){
 			, 'dataSouce' : this.req.dataSource||{}
 			,'query' : this.req.__get};
 		var tplPath = config.path.appPath +   this.hostPath + config.path.views
+
         est.renderFile(tplPath ,tplName , data , callBack , tplPre );
         //jst.renderFile(tplName, data , callBack );
 

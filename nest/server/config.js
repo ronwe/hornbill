@@ -55,18 +55,20 @@ exports.virtualHost = require('./config/virtual_host.json');
 
 
 exports.setAbsPath = function (webRoot) {
-	webRoot += '/';
+	webRoot += path.sep;
+	
 	for (var p in cPath){
+		cPath[p] = cPath[p].replace(/\//g, path.sep)
 		if ('appPath' == p || 'views' == p || 'model' == p || 'controller' == p){
 			continue
 		}
-		if (p != 'webRoot' && cPath[p][0] != '/') {
+		if (p != 'webRoot' && cPath[p][0] != path.sep) {
 			cPath[p] = webRoot + cPath[p];
 		}
 	}
-	if (cPath.compiledViews) cPath.compiledViews = path.resolve(cPath.compiledViews) + '/' 
-	if (cPath.appPath) cPath.appPath = path.resolve(cPath.appPath) + '/' 
+	if (cPath.compiledViews) cPath.compiledViews = path.resolve(cPath.compiledViews) + path.sep
+	if (cPath.appPath) cPath.appPath = path.resolve(cPath.appPath) + path.sep 
 	else cPath.appPath = ''
 	cPath.webRoot = webRoot;
-	
+	//console.log(cPath)
 }

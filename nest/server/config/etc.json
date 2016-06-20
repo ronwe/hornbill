@@ -5,6 +5,7 @@
 "token":"abcd",
 "hostDefault":{
 	"demo":"welcome"
+    ,"mobforum" : "index"
 },
 "compiler" : true ,
 "loadDepency" : false,
@@ -12,5 +13,6 @@
 "compile" : {
     ".js" : {"compiler" : "combo.js" ,"contentType" : "application/x-javascript"}
     ,".css" : {"contentType" : "text/css" }
+    ,".svg" : {"contentType" : "image/svg+xml" }
 },
 "onPort":6001}
