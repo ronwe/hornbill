@@ -131,7 +131,7 @@ function create(req ,res , notify) {
 							
                             }
                          }
-                     return evt ? evt(result , res_state) : result;
+                     return evt ? evt(result ) : result;
                              });
                 });
             request.on('error' , function(e){
