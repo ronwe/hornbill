@@ -123,6 +123,8 @@ function route(request ,response ) {
 		    if ('function' == typeof mod[fn]){
 				//base.accessLog(200 , request  )
 			    exeAppScript(hostPath ,request , response , mod ,fn , param);	
+		   }else if (mod.__call){
+                exeAppScript(hostPath ,request , response , mod , '__call' , fn , param)
 		    }else {
 				base.accessLog(404 , request, modFilePath + ' not assign'  )
 				response.writeHead(404 , {'Content-Type' : 'text/plain'});        
@@ -134,13 +136,13 @@ function route(request ,response ) {
 }
 
 
-function exeAppScript(hostPath ,request , response , mod , fn , param){
+function exeAppScript(hostPath ,request , response , mod , fn , param ,param2 ){
 	
 	 function toExe (){
 	    mod.setRnR && mod.setRnR(request , response ,{"hostPath" : hostPath})
         //console.log(mod[fn]);
 		try { 
-			mod[fn](param)   
+			mod[fn](param , param2)   
 		}catch (err){
 			base.dataErrLog(500 , request,  'Fatal error :'+ err  )
 			response.writeHead(500)
