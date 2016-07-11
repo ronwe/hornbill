@@ -66,8 +66,8 @@ exports.setAbsPath = function (webRoot) {
 			cPath[p] = webRoot + cPath[p];
 		}
 	}
-	if (cPath.compiledViews) cPath.compiledViews = path.resolve(cPath.compiledViews) + path.sep
-	if (cPath.appPath) cPath.appPath = path.resolve(cPath.appPath) + path.sep 
+	if (cPath.compiledViews) cPath.compiledViews = path.resolve(webRoot,cPath.compiledViews) + path.sep
+	if (cPath.appPath) cPath.appPath = path.resolve(webRoot,cPath.appPath) + path.sep 
 	else cPath.appPath = ''
 	cPath.webRoot = webRoot;
 	//console.log(cPath)
