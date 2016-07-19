@@ -10,15 +10,24 @@ const STATUS = {
 const LoadDepency = config.etc.loadDepency
 function getDepencies(context){
     var deps = []
-    context =  context.replace(/(\/\*[\w\'\s\r\n\*]*\*\/)|(\/\/[\w\s\']*)/g,'') 
+    ///context =  context.replace(/(\/\*[\w\'\s\r\n\*]*\*\/)|(\/\/[\w\s\']*)/g,'')
+    while(true){
+        var comment_start = context.indexOf('/*' )
+        if (-1 === comment_start ) break
+        var comment_end =  context.indexOf('*/' , comment_start)
+        if (-1 === comment_end) break
+        context = context.slice(0,comment_start) + context.slice( comment_end + 2 )
+    }
+
+    context =  context.replace(/\/\/[^\n]*\n/g,'')
     var reg = /\brequire\(['"]([a-zA-Z0-9\-_\.\/]+)['"]\)/mg
 
     while ( mod = reg.exec(context) ) {
         mod = mod[1].replace(/\.js$/i,'')
-        deps.push(mod)
+        if (deps.indexOf(mod) === -1) deps.push(mod)
     }
- 
-    return deps 
+
+    return deps
 }
 
 function putInLoadStack(stack , mod){
