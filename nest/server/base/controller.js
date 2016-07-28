@@ -163,7 +163,7 @@ function ajaxTo(url, callBack , method){
 			 else data += ''
 			 
 		
-			 writeRes(res , status , data ,{'Content-Type': 'text/plain'
+			 writeRes(res , status , data ,{'Content-Type': 'application/json; charset=utf-8'
                                         ,'Cache-Control': 'no-cache,no-store'
                                         ,'service' :ServerHead })
 			 base.accessLog(status, req , new Date - req.__request_time)
