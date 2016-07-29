@@ -34,5 +34,6 @@ if (config.etc.watchingTpl){
         })
         watcher.takeCare(watches)
     })
+    watcher.look4New(config.path.appPath) 
     //watcher.takeCare([config.path.appPath  ] , undefined , ['controller' , 'model' , 'views'])
 }

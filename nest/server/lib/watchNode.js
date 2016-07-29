@@ -7,7 +7,6 @@ function listenToChange (file ){
     function onChg(prev,now) {
         if (prev.mtime == now.mtime  ) return
         delete require.cache[file] 
-
     } 
 
     fs.watchFile(file ,{ persistent: true, interval: 500 } , onChg)
@@ -23,6 +22,7 @@ function mapDir (dir ,ext) {
                 if (err) return
                 if (stats.isDirectory() ) {
                     mapDir(file , ext)
+                    look4New(file)
                 }else if (stats.isFile() ){
                     listenToChange(file)
 
@@ -45,3 +45,19 @@ exports.takeCare = function( dir , ext ){
     })
 }
 
+
+function look4New(dir  ){
+    fs.watch(dir,{ persistent: true, interval: 1000 } , function(eventType, filename){
+        filename = path.resolve( dir , filename)
+         
+        fs.lstat( filename,(err , stats) => {
+            if (err) return
+            if (stats.isDirectory() ) {
+                look4New(filename)
+            }else{
+                listenToChange(filename)
+            }
+        })
+    })
+}
+exports.look4New = look4New
