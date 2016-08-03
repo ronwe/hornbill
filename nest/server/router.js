@@ -17,7 +17,7 @@ if (!fs.existsSync(config.path.compiledViews)){
 var lookuped = {}
 
 function route(request ,response ) {
-    //console.log('%s / %s' ,request.headers.host  , request.url );
+    // console.log('%s / %s' ,request.headers.host  , request.url );
 	try{
 		var reqUrl  = url.parse('http://' + request.headers.host  + request.url , true)
 	}catch(err){
@@ -101,42 +101,87 @@ function route(request ,response ) {
 	var modFilePath = modPath + modName
     if (!lookuped[modFilePath] && !fs.existsSync( modFilePath)){
 			base.accessLog(404 , request  )
-			response.writeHead(404 , {'Content-Type' : 'text/plain'});        
-		    response.end('404');
+			response.writeHead(404 , {'Content-Type' : 'text/plain'})        
+		    response.end('404')
     }else{
-			lookuped[modFilePath] = true;
-		    var mod = require ( modFilePath);
-		    var fn = mods[1];
-		    var param = mods.length == 3 ? mods[2] : null;
+			lookuped[modFilePath] = true
+		    var mod = require ( modFilePath)
+		    var fn = mods[1]
+		    var param = mods.length == 3 ? mods[2] : null
 		    if (param) {
 				try {
-					param = decodeURIComponent(param);
+					param = decodeURIComponent(param)
 				} catch(err) {
-					console.log(err, param);
+					console.log(err, param)
 				}
 			}
-			//console.log(mod , fn);
+            if (mod.__pipe){
+                return pipeRes(request , response , mod.__pipe,fn , param) 
+            }
 		    if ('function' != typeof mod[fn] &&
 		        'function' == typeof mod['__create']){
-			    mod = mod.__create(modName , hostPath);
+			    mod = mod.__create(modName , hostPath)
 			}
-		    if ('function' == typeof mod[fn]){
+		    if ('function' == typeof mod[fn] ){
 				//base.accessLog(200 , request  )
-			    exeAppScript(hostPath ,request , response , mod ,fn , param);	
-		   }else if (mod.__call){
-                exeAppScript(hostPath ,request , response , mod , '__call' , fn , param)
-		    }else {
+			    exeAppScript(hostPath ,request , response , mod ,fn , param)	
+		    }else if (mod.__call){
+			    exeAppScript(hostPath ,request , response , mod , '__call' , fn , param)
+            }else {
 				base.accessLog(404 , request, modFilePath + ' not assign'  )
-				response.writeHead(404 , {'Content-Type' : 'text/plain'});        
-			    response.end('not assign.');	
+				response.writeHead(404 , {'Content-Type' : 'text/plain'})        
+			    response.end('not assign.')	
 
 		    }
             
      }
 }
+function pipeRes(request , response , mod , fn , param){
+    var http = require('http')
+    if (!mod[fn]) {
+        response.setHeader(404)
+        response.end('pipe miss')
+        return 
+    }  
+    var hosts = config.api.hosts || {}
+    var description = mod[fn]  
+    var url = description.url 
+        ,host = hosts[description.host || 'web']
+  
+    
+    var query = querystring.stringify(request.__get)
+    if (query){
+        url += (url.indexOf('?') >0 ? '&' :'?') + query
+    }
+    request.pause()
+
+    var options = {} 
+
+    options.headers = description.headers || request.headers
+    options.method = description.method || request.method
+    options.agent = false
+
+    options.host = host 
+    options.port = description.port || 80
+    options.path = url
+
+    options.headers.host = host
+    options.headers.reqHost = request.headers.host
+    options.headers.requrl = request.url
+
+    var connector = http.request(options, function(serverResponse) {
+        serverResponse.pause()
+        response.writeHeader(serverResponse.statusCode, serverResponse.headers)
+        serverResponse.pipe(response)
+        serverResponse.resume()
+    })
+
+    request.pipe(connector)
+    request.resume()   
+}
 
 
-function exeAppScript(hostPath ,request , response , mod , fn , param ,param2 ){
+function exeAppScript(hostPath ,request , response , mod , fn , param , param2){
 	
 	 function toExe (){
 	    mod.setRnR && mod.setRnR(request , response ,{"hostPath" : hostPath})
