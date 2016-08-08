@@ -38,6 +38,7 @@ function route(request ,response ) {
 	var suffix = path.extname(reqPath)
     var suffix_conf = config.etc.compile[suffix]
 	if (suffix  ) {
+		if (['.ttf' , '.woff','.eot' , '.svg'].indexOf(suffix) !== -1) response.setHeader('Access-Control-Allow-Origin' , '*')
         // 查找对应compiler    
         if (suffix_conf) response.setHeader('content-type', suffix_conf.contentType || 'text/plain')
 
