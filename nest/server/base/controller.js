@@ -7,8 +7,9 @@ var querystring = require('querystring');
 var siteInfo =  config.site;
 var eventLib = require(config.path.base + 'evtHandle.js');
 eventLib.prepareData(siteInfo);
+var cookieHandle = require(config.path.base + 'cookie.js') 
 
-var ServerHead = 'hornbill living in ' + config.etc.hostID;
+var ServerHead = 'hornbill living in ' + config.etc.hostID
 
 est.setOption({
 	watchingTpl : config.etc.watchingTpl,
@@ -136,12 +137,13 @@ Controller.prototype = {
 function setRnR (req ,res , opt){
 
 
-     this.req = req;
-     this.res = res;
-     var client_ip = req.headers['x-forwarded-for'] || req.headers['http_client_ip'] ||  req.headers['x-real-ip'] || req.connection.remoteAddress;
+     this.req = req
+     this.res = res
+     this.cookie = cookieHandle.getHandler(req ,res) 
+     var client_ip = req.headers['x-forwarded-for'] || req.headers['http_client_ip'] ||  req.headers['x-real-ip'] || req.connection.remoteAddress
 	 this.opt = opt ||{}
 
-	 this.req.headers.clientIp = client_ip;
+	 this.req.headers.clientIp = client_ip
 }
 
 /*
@@ -223,9 +225,9 @@ function render(tplName , data , callBack){
 			}
 		}
         var tplPre = tplPreCache[this.hostPath] || (tplPreCache[this.hostPath] = this.hostPath.replace(/\//g,'').replace(/\\/g,'') );
-		if (!data) data = {};
-		data['_Request_query'] = this.req.__get;
-		data['_Request_cookies'] = this.req.__cookies;
+		if (!data) data = {}
+		data['_Request_query'] = this.req.__get
+		data['_Request_cookies'] = this.req.__cookies
 		data['_Request_raw'] = {'url': this.req.url 
 			, 'dataSouce' : this.req.dataSource||{}
 			,'query' : this.req.__get};
