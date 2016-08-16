@@ -147,7 +147,7 @@ function pipeRes(request , response , mod , fn , param){
     var hosts = config.api.hosts || {}
     var description = mod[fn]  
     var url = description.url 
-        ,host = hosts[description.host || 'web']
+        ,host = hosts[description.host || 'web'] || description.host
   
     
     var query = querystring.stringify(request.__get)
