@@ -23,9 +23,5 @@ cluster.on('exit', function(worker) {
 
 
 
-fs.createWriteStream("config/pids", {
-flags: "a",
-encoding: "utf-8",
-mode: 0666
-}).write(process.pid + "\n");
+
 
