@@ -76,3 +76,11 @@ exports.inherit = function (clsContruct , supClsObj,  override){
 exports.loadBase = function(modName){
     return require(config.path.base + modName)
 }
+
+//node util.is*过期
+exports.isObject = function(o){
+     return (!!o) && (o.constructor === Object)
+}
+exports.isString = function(o) {
+    return Object.prototype.toString.call(o) === "[object String]"
+}

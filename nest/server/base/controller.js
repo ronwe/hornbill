@@ -7,7 +7,9 @@ var querystring = require('querystring');
 var siteInfo =  config.site;
 var eventLib = require(config.path.base + 'evtHandle.js');
 eventLib.prepareData(siteInfo);
+
 var cookieHandle = require(config.path.base + 'cookie.js') 
+var apiShrink = require(config.path.lib + 'api/shrink.js')
 
 var ServerHead = 'hornbill living in ' + config.etc.hostID
 
@@ -114,14 +116,24 @@ Controller.prototype = {
 	} ,
 	listenOver : function(callBack , noPrepare){
         var mSelf = this;
-		
+	    var opt = {}	
+        if (base.isObject(noPrepare)){
+            opt = noPrepare
+        }else{
+            opt.noPrepare = noPrepare
+        }
 		function cbk(data , err){
 			if (!err){ 
+                //api结构析构
+                if (opt.shrink && apiShrink) {
+                    var error_from_api = apiShrink.parse(data)
+                }
 				if (mSelf._prevData){
 					data = base.array_merge(mSelf._prevData , data)
 					delete mSelf._prevData
-					}
-				callBack.call(mSelf , data)
+				}
+        
+				callBack.call(mSelf , data , error_from_api || {})
 			}else{
 				writeRes(mSelf.res , 503 ,'error raised' , null , mSelf.req.url)
 				var splitor = "\n--->\n"
@@ -131,7 +143,7 @@ Controller.prototype = {
 				}
 			}
         //return this.eventHandle.listenOver(callBack,noPrepare) ;
-        return this.eventHandle.listenOver(cbk,noPrepare) ;
+        return this.eventHandle.listenOver(cbk,opt.noPrepare) 
     }
 }
 function setRnR (req ,res , opt){
@@ -228,6 +240,8 @@ function render(tplName , data , callBack){
 		if (!data) data = {}
 		data['_Request_query'] = this.req.__get
 		data['_Request_cookies'] = this.req.__cookies
+        data['_Request_ua'] = this.req.headers['user-agent']
+        data['_Request_host'] = this.req.headers.host
 		data['_Request_raw'] = {'url': this.req.url 
 			, 'dataSouce' : this.req.dataSource||{}
 			,'query' : this.req.__get};
