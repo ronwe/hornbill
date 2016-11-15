@@ -37,3 +37,6 @@ if (config.etc.watchingTpl){
     watcher.look4New(config.path.appPath) 
     //watcher.takeCare([config.path.appPath  ] , undefined , ['controller' , 'model' , 'views'])
 }
+process.on('uncaughtException', function (err) {
+    console.log(err)
+})

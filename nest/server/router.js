@@ -176,6 +176,10 @@ function pipeRes(request , response , mod , fn , param){
         serverResponse.pipe(response)
         serverResponse.resume()
     })
+    connector.on('error' , function(err){
+        response.writeHeader(500,err)
+        response.end()
+    })
 
     request.pipe(connector)
     request.resume()   
