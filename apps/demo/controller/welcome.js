@@ -1,6 +1,6 @@
 
 var controlFns = {
-	'index' : function(id ){
+	'default' : function(id ){
 		var model = this.loadModel('demo.js')
 		this.bindDefault()
 		this.listenOn( model.read, 'model')('a',{})
@@ -9,6 +9,9 @@ var controlFns = {
 			data.test =  new Date
 			this.render('welcome.html' , data)
 		})
+	},
+	'index' :function() {
+		this.render('detect.html' , {})
 	},
     'demo' : function(){
 

@@ -1,0 +1,18 @@
+{"uploadTmp":false,
+"watchingTpl":true,
+"fussTpl":false,
+"hostID":"0.0.0.0",
+"token":"abcd",
+"hostDefault":{
+	"demo":"welcome"
+    ,"mobforum" : "index"
+},
+"compiler" : true ,
+"loadDepency" : false,
+"cpuNums":"1",
+"compile" : {
+    ".js" : {"compiler" : "combo.js" ,"contentType" : "application/x-javascript"}
+    ,".css" : {"contentType" : "text/css" }
+    ,".svg" : {"contentType" : "image/svg+xml" }
+},
+"onPort":6001}

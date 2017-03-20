@@ -1,5 +1,5 @@
 { 
-"appPath" : "../../apps/",
+"appPath" : "../apps/",
 "controller" : "controller/" ,
 "lib" : "lib/" ,
 "model" : "model/" ,

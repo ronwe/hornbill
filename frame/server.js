@@ -1,8 +1,9 @@
+var argv_options = process.argv.slice(2)
+
 var http = require("http")
 
 var router = require("./router.js")
 
-var numCPUs = config.etc.cpuNums || require('os').cpus().length;
 
 function start(route , port) {
 	function onRequest(request, response) {

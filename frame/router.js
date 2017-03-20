@@ -1,11 +1,17 @@
+var argv_options = process.argv.slice(2) || []
+
 var fs = require("fs"),
     url = require('url'),
     path = require('path'),
     querystring = require('querystring')
+
+	
 var config = require('./config.js') 
 
-//config.setAbsPath( __dirname.replace(/\\/g,'/') )
-config.setAbsPath( __dirname)
+config.setAbsPath( __dirname , {
+	'configPath' : argv_options[0]
+	,'appsPath' : argv_options[1]
+})
 global.config = config
 global.base = require(config.path.base + 'base.js')
 global.controller = require(config.path.base + 'controller.js')
