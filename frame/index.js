@@ -1,6 +1,11 @@
 var cluster = require('cluster')
 	,path = require('path')
 	,fs = require("fs")
+/*
+ * 注册中间件
+ * */
+
+
 
 /*
  * cpuNums 启动cpu数

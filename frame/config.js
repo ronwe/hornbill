@@ -70,11 +70,10 @@ function wrapExpt(configPath){
 exports.setAbsPath = function (webRoot , options) {
 	var configPath = options.configPath
 		,appsPath = options.appsPath	
+	if ('undefined' === appsPath) appsPath = null
+	if ('undefined' === configPath) configPath = null
 	wrapExpt(configPath)
 
-	if (appsPath){
-		cPath.appPath = appsPath
-	}
 	//exports.etc.onPort
 	webRoot += path.sep
 	
@@ -88,8 +87,13 @@ exports.setAbsPath = function (webRoot , options) {
 		}
 	}
 	if (cPath.compiledViews) cPath.compiledViews = path.resolve(webRoot,cPath.compiledViews) + path.sep
-	if (cPath.appPath) cPath.appPath = path.resolve(webRoot,cPath.appPath) + path.sep 
-	else cPath.appPath = ''
-	cPath.webRoot = webRoot;
+
+	if (appsPath){
+		cPath.appPath = appsPath
+	}else {
+		if (cPath.appPath) cPath.appPath = path.resolve(webRoot,cPath.appPath) + path.sep 
+		else cPath.appPath = ''
+	}
+	cPath.webRoot = webRoot
 	//console.log(cPath)
 }
