@@ -2,11 +2,11 @@
 var util = require("util")
 	, events =  require("events");
 var est = require(config.path.lib + 'est/est.js');
-var callApiLib = require(config.path.base + 'remoteApi.js'); 
-var querystring = require('querystring'); 
-var siteInfo =  config.site;
-var eventLib = require(config.path.base + 'evtHandle.js');
-eventLib.prepareData(siteInfo);
+var callApiLib = require(config.path.base + 'remoteApi.js') 
+var querystring = require('querystring') 
+var siteInfo =  config.site
+var eventLib = require(config.path.base + 'evtHandle.js')
+eventLib.prepareData(siteInfo)
 
 var cookieHandle = require(config.path.base + 'cookie.js') 
 var apiShrink = require(config.path.lib + 'api/shrink.js')
@@ -16,19 +16,29 @@ var ServerHead = 'hornbill living in ' + config.etc.hostID
 est.setOption({
 	watchingTpl : config.etc.watchingTpl,
 	fuss : config.etc.fussTpl,
-    compiledFolder : config.path.compiledViews });
+    compiledFolder : config.path.compiledViews })
 
-var jsDepCache = {};
+var jsDepCache = {}
+	,tplPreCache = {}
 
-var tplPreCache = {};
-function writeRes (res , status , context, header , debugStr){		
+var sendToRender
+
+function writeRes (req , res , opt , status , body, header , debugStr){		
 	if (res.headersSent){
 		return console.log('header had been send' ,null , new Date, debugStr || '')
 	}
 	try{
-		res.writeHead( status, header || {'Content-Type': 'text/plain','Cache-Control': 'no-cache,no-store' ,  'service' :ServerHead });
-		res.write( context)
+		sendToRender(req , res , opt, {
+			'status' : status,
+			'header' : header || {'Content-Type': 'text/plain','Cache-Control': 'no-cache,no-store' ,  'serv    ice' :ServerHead },
+			'body' :body 
+		})
+		
+		/*
+		res.writeHead( status, header || {'Content-Type': 'text/plain','Cache-Control': 'no-cache,no-store' ,  'service' :ServerHead })
+		res.write( body)
 		res.end()
+		*/
 	}catch(err){
 		console.log('write res error' ,err , new Date, debugStr || '')
 	}
@@ -60,7 +70,7 @@ Controller.prototype = {
 		if (!code ) code = 404
 
 		base.accessLog(code, this.req , 'error page raise')
-		writeRes(this.res , code , code +'')
+		writeRes(this.req , this.res , this.opt, code , code +'')
 		},
     redirectTo : function(url , proxyArgs ,opt){
 		opt = opt || {}
@@ -76,7 +86,7 @@ Controller.prototype = {
 		    args = require('querystring').stringify(args)
 	        if (args) url += (url.indexOf('?')>0 ? '&' :'?') + args
 		}
-		writeRes(this.res , 301 , '' ,{
+		writeRes(this.req , this.res ,this.opt,  301 , '' ,{
             'Location' : url,
 			'Cache-Control' : 'no-cache,must-revalidate,no-store',
 			'Pragma' : 'no-cache'
@@ -135,7 +145,7 @@ Controller.prototype = {
         
 				callBack.call(mSelf , data , error_from_api || {})
 			}else{
-				writeRes(mSelf.res , 503 ,'error raised' , null , mSelf.req.url)
+				writeRes(mSelf.req , mSelf.res , mSelf.opt , 503 ,'error raised' , null , mSelf.req.url)
 				var splitor = "\n--->\n"
 				base.dataErrLog(splitor + new Date() 
 				+ splitor + 'url:'+ mSelf.req.url 
@@ -167,6 +177,7 @@ function setRnR (req ,res , opt){
 function ajaxTo(url, callBack , method){
 	var res = this.res
 		,req = this.req
+		,opt = this.opt
      if (!callBack ) {
         callBack = function(data , res_state){ 
 			 var status =   false === data ?400: 200
@@ -177,7 +188,7 @@ function ajaxTo(url, callBack , method){
 			 else data += ''
 			 
 		
-			 writeRes(res , status , data ,{'Content-Type': 'application/json; charset=utf-8'
+			 writeRes(req , res , opt ,status , data ,{'Content-Type': 'application/json; charset=utf-8'
                                         ,'Cache-Control': 'no-cache,no-store'
                                         ,'service' :ServerHead })
 			 base.accessLog(status, req , new Date - req.__request_time)
@@ -217,7 +228,7 @@ function render(tplName , data , callBack){
 		//show snake data  
 		var now = new Date()
 		if ( this.req.__get['__pd__'] == '/rb/' + (now.getMonth() + now.getDate() + 1)){
-			writeRes(this.res , 200 ,JSON.stringify(data) )
+			writeRes(this.req , this.res ,this.opt,  200 ,JSON.stringify(data) )
 			base.accessLog(201, this.req , 'data debug')
 			return	
 			}
@@ -226,12 +237,13 @@ function render(tplName , data , callBack){
 	if ('function' != typeof callBack){
 		var res = this.res
 			,req = this.req
+			,opt = this.opt
 		callBack = function(err , html){
                 if (!err) {
 					//html += '<script>var l={};l.req=' + req.__request_time.getTime() + ';l.h=' + (new Date).getTime()+ '</script>'
-					writeRes(res , 200 , html , {'Content-Type': 'text/html;charset=utf-8' , 'Cache-Control': 'no-cache,no-store' ,'service' :ServerHead} , req.url)
+					writeRes(req , res ,opt, 200 , html , {'Content-Type': 'text/html;charset=utf-8' , 'Cache-Control': 'no-cache,no-store' ,'service' :ServerHead} , req.url)
                 }else{
-					writeRes(res , 503 ,'error raised' , null , req.url)
+					writeRes(req ,res ,opt,  503 ,'error raised' , null , req.url)
                 }
 				base.accessLog(err? 503 : 200, req , new Date - req.__request_time)
 			}
@@ -276,4 +288,7 @@ exports.__create = function (mod , extFn){
 
 		return modObj
 	}
+}
+exports.regRender = function(fn){
+	sendToRender = fn
 }

@@ -1,4 +1,3 @@
-var argv_options = process.argv.slice(2) || []
 
 var fs = require("fs"),
     url = require('url'),
@@ -7,23 +6,82 @@ var fs = require("fs"),
 
 	
 var config = require('./config.js') 
-
-config.setAbsPath( __dirname , {
-	'configPath' : argv_options[0]
-	,'appsPath' : argv_options[1]
-})
-global.config = config
-global.base = require(config.path.base + 'base.js')
-global.controller = require(config.path.base + 'controller.js')
-
-const SEP = path.sep
-if (!fs.existsSync(config.path.compiledViews)){
-    require('child_process').execSync('mkdir -p ' + config.path.compiledViews)
-}
 var lookuped = {}
+const SEP = path.sep
+
+var middleware_before = []
+	,middleware_after = []
+
+function registConnect(connect , opt){
+	opt = opt || {}
+	var stack = opt.after ? middleware_after : middleware_before
+	stack.push({
+		conntion : connect,
+		urlRegTest: opt.urlRegTest,
+		host : opt.host
+	})
+
+}
+
+function setGlobal(options){
+	config.setAbsPath( __dirname , {
+		'configPath' : options.configPath 
+		,'appsPath' : options.appsPath 
+	})
+	global.config = config
+	global.base = require(config.path.base + 'base.js')
+	global.controller = require(config.path.base + 'controller.js')
+
+	controller.regRender(renderWorker)
+
+	if (!fs.existsSync(config.path.compiledViews)){
+		require('child_process').execSync('mkdir -p ' + config.path.compiledViews)
+	}
+}
+
+function renderWorker(req ,res ,opt , context){
+	opt = opt || {}
+	processStack(middleware_after, req ,res , opt.virtualHostName, context , function(next_err, next_val){
+
+		if (!next_val || !next_val.body) next_val = context
+		res.writeHead( next_val.status, next_val.header )
+		res.write( next_val.body)
+		res.end()
+	})
+	
+}
+
+function processStack(middleware , request ,response , virtualHostName , init_val , done){
+	var cur = 0
+	function handleConnectStack(err ,val){
+		var connect = middleware[cur]
+		function callNextConnect(err ,val){
+			cur++
+			handleConnectStack(err ,val)
+		}	
+		if (connect && connect.host && virtualHostName !== connect.host) return callNextConnect() 
+		if (connect && connect.urlRegTest  ){
+			if (typeof connect.urlRegTest.test === 'function') {
+				if (!connect.urlRegTest.test(request.url)) return callNextConnect()
+			}else if ('string' === typeof connect.urlRegTest) {
+				if (request.url.indexOf(connect.urlRegTest) !== 0  ) return callNextConnect()
+			}
+		}
+
+		if (!connect)  {
+			return done(err, val)
+		}else{
+			connect.conntion(request ,response , function(next_err , next_val){
+				callNextConnect(next_err ,next_val)
+			},val)
+		}
+
+	}
+	handleConnectStack(null , init_val)
+}
 
 function route(request ,response ) {
-    // console.log('%s / %s' ,request.headers.host  , request.url );
+    //console.log('%s / %s' ,request.headers.host  , request.url )
 	try{
 		var reqUrl  = url.parse('http://' + request.headers.host  + request.url , true)
 	}catch(err){
@@ -34,6 +92,20 @@ function route(request ,response ) {
 	}
 
     var virtualHostName = config.virtualHost[reqUrl.hostname]
+	if (!virtualHostName){
+		console.log ('Route Parse Error:' , request.headers.host)
+		response.writeHead(500 , {'Content-Type' : 'text/plain'})        
+	    response.end('host miss')
+		return	
+	}
+	
+	processStack(middleware_before , request ,response , virtualHostName , null ,function(){
+		 handleRoute(request ,response , virtualHostName , reqUrl)
+	})
+	
+	//handleRoute(request ,response)
+}
+function handleRoute(request ,response , virtualHostName  , reqUrl){
     //TODO 根据一级目录查找hostPath
 	var hostPath =   virtualHostName || ''
 	if (hostPath) hostPath += SEP 
@@ -99,49 +171,48 @@ function route(request ,response ) {
 	var mods = modUriSeg.splice(-3)
 	//console.log(mods)
 
-
 	modPath = config.path.appPath  + hostPath + SEP + 'controller' +
              SEP  + (modUriSeg.length ? modUriSeg.join(SEP) + SEP  : '')
 	delete modUriSeg 
 	
 	var modName = mods[0] + '.js'
 	var modFilePath = modPath + modName
-    if (!lookuped[modFilePath] && !fs.existsSync( modFilePath)){
-			base.accessLog(404 , request  )
+	if (!lookuped[modFilePath] && !fs.existsSync( modFilePath)){
+		base.accessLog(404 , request  )
 			response.writeHead(404 , {'Content-Type' : 'text/plain'})        
-		    response.end('404')
-    }else{
-			lookuped[modFilePath] = true
-		    var mod = require ( modFilePath)
-		    var fn = mods[1]
-		    var param = mods.length == 3 ? mods[2] : null
-		    if (param) {
-				try {
-					param = decodeURIComponent(param)
-				} catch(err) {
-					console.log(err, param)
-				}
+			response.end('404')
+	}else{
+		lookuped[modFilePath] = true
+		var mod = require ( modFilePath)
+		var fn = mods[1]
+		var param = mods.length == 3 ? mods[2] : null
+		if (param) {
+			try {
+				param = decodeURIComponent(param)
+			} catch(err) {
+				console.log(err, param)
 			}
-            if (mod.__pipe){
-                return pipeRes(request , response , mod.__pipe,fn , param) 
-            }
-		    if ('function' != typeof mod[fn] &&
-		        'function' == typeof mod['__create']){
-			    mod = mod.__create(modName , hostPath)
-			}
-		    if ('function' == typeof mod[fn] ){
-				//base.accessLog(200 , request  )
-			    exeAppScript(hostPath ,request , response , mod ,fn , param)	
-		    }else if (mod.__call){
-			    exeAppScript(hostPath ,request , response , mod , '__call' , fn , param)
-            }else {
-				base.accessLog(404 , request, modFilePath + ' not assign'  )
+		}
+		if (mod.__pipe){
+			return pipeRes(request , response , mod.__pipe,fn , param) 
+		}
+		if ('function' != typeof mod[fn] &&
+				'function' == typeof mod['__create']){
+			mod = mod.__create(modName , hostPath)
+		}
+		if ('function' == typeof mod[fn] ){
+			//base.accessLog(200 , request  )
+			exeAppScript(hostPath ,virtualHostName , request , response , mod ,fn , param)	
+		}else if (mod.__call){
+			exeAppScript(hostPath ,virtualHostName , request , response , mod , '__call' , fn , param)
+		}else {
+			base.accessLog(404 , request, modFilePath + ' not assign'  )
 				response.writeHead(404 , {'Content-Type' : 'text/plain'})        
-			    response.end('not assign.')	
+				response.end('not assign.')	
 
-		    }
-            
-     }
+		}
+
+	}
 }
 function pipeRes(request , response , mod , fn , param){
     var http = require('http')
@@ -191,11 +262,11 @@ function pipeRes(request , response , mod , fn , param){
     request.resume()   
 }
 
-
-function exeAppScript(hostPath ,request , response , mod , fn , param , param2){
+function exeAppScript(hostPath ,virtualHostName , request , response , mod , fn , param , param2){
 	
 	 function toExe (){
-	    mod.setRnR && mod.setRnR(request , response ,{"hostPath" : hostPath})
+	    mod.setRnR && mod.setRnR(request , response ,{"hostPath" : hostPath ,"virtualHostName" : virtualHostName })
+
         //console.log(mod[fn]);
 		try { 
 			mod[fn](param , param2)   
@@ -229,3 +300,5 @@ function exeAppScript(hostPath ,request , response , mod , fn , param , param2){
 }
 
 exports.route = route
+exports.setGlobal = setGlobal 
+exports.connect = registConnect

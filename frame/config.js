@@ -70,8 +70,6 @@ function wrapExpt(configPath){
 exports.setAbsPath = function (webRoot , options) {
 	var configPath = options.configPath
 		,appsPath = options.appsPath	
-	if ('undefined' === appsPath) appsPath = null
-	if ('undefined' === configPath) configPath = null
 	wrapExpt(configPath)
 
 	//exports.etc.onPort
@@ -88,8 +86,11 @@ exports.setAbsPath = function (webRoot , options) {
 	}
 	if (cPath.compiledViews) cPath.compiledViews = path.resolve(webRoot,cPath.compiledViews) + path.sep
 
+	if (configPath){
+		cPath.config = path.resolve(configPath) +  path.sep 
+	}
 	if (appsPath){
-		cPath.appPath = appsPath
+		cPath.appPath = path.resolve(appsPath) +  path.sep
 	}else {
 		if (cPath.appPath) cPath.appPath = path.resolve(webRoot,cPath.appPath) + path.sep 
 		else cPath.appPath = ''
