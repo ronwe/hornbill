@@ -63,7 +63,7 @@ function wrapExpt(configPath){
 	}
 
 	exports.db = db
-	exports.virtualHost = require('./config/virtual_host.json') 
+	exports.virtualHost = requirePathAbs('virtual_host.json') 
 
 }
 

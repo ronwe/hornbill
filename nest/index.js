@@ -9,7 +9,7 @@ hornbill.start({
 function x( req, res, next ,val) {
 
     // Do Something to `req' or `res'
-	return res.end('ddd')
+	//	return res.end('ddd')
 
     return next(null , val)
 
@@ -19,4 +19,4 @@ function x( req, res, next ,val) {
 * host 域
 * after app处理后 
 */
-hornbill.use(x , {urlRegTest:'/' , after: true})
+//hornbill.use(x , {urlRegTest:'/' , after: true})
