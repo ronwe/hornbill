@@ -99,8 +99,8 @@ Controller.prototype = {
         },
 	bridgeMuch : function(php){
 		for (var k in php){
-			var phpClient = this.bridge( php[k]);
-			this.listenOn(phpClient , k)();
+			var phpClient = this.bridge( php[k])
+			this.listenOn(phpClient , k)()
 		}
 		this.req.dataSource = php
 	},
@@ -238,29 +238,67 @@ function render(tplName , data , callBack){
 		var res = this.res
 			,req = this.req
 			,opt = this.opt
-		callBack = function(err , html){
-                if (!err) {
-					//html += '<script>var l={};l.req=' + req.__request_time.getTime() + ';l.h=' + (new Date).getTime()+ '</script>'
-					writeRes(req , res ,opt, 200 , html , {'Content-Type': 'text/html;charset=utf-8' , 'Cache-Control': 'no-cache,no-store' ,'service' :ServerHead} , req.url)
-                }else{
-					writeRes(req ,res ,opt,  503 ,'error raised' , null , req.url)
-                }
-				base.accessLog(err? 503 : 200, req , new Date - req.__request_time)
-			}
+
+		function readFromRemote(url){
+			var api = callApiLib.__create(req , res , null , {'remoteHtml' : true,'noAutoHeaders': true} )(url , 'GET' , null ,true)
+			 return function(evt){
+				 api(evt  )
+			 }
+			
 		}
-        var tplPre = tplPreCache[this.hostPath] || (tplPreCache[this.hostPath] = this.hostPath.replace(/\//g,'').replace(/\\/g,'') );
-		if (!data) data = {}
-		data['_Request_query'] = this.req.__get
+
+		callBack = function(err , html){
+			if (html && html.html){
+				//object
+				//
+				var _before_html = html.html
+				if (html.remote_to_include){
+					var rti_event = eventLib.__create()
+					for (var placeholder in html.remote_to_include){
+						var toCallMethod = readFromRemote(html.remote_to_include[placeholder])
+						rti_event.listenOn( toCallMethod , placeholder,[])
+					}
+					rti_event.listenOver(function(remotes){
+						for (var placeholder in remotes){
+							var remote_html = remotes[placeholder]
+							if (false === remote_html){
+								remote_html = 'call remote : ' + html.remote_to_include[placeholder]  + ' fail'
+							}else{
+								remote_html = remote_html.toString()
+							}
+							_before_html = _before_html.replace(placeholder, remote_html)				
+						}
+						callBack(null , _before_html)
+					}, true)
+					return
+					//TODO remote include替换 
+				}
+				html = _before_html 
+			}
+
+			if (!err) {
+				//html += '<script>var l={};l.req=' + req.__request_time.getTime() + ';l.h=' + (new Date).getTime()+ '</script>'
+				writeRes(req , res ,opt, 200 , html , {'Content-Type': 'text/html;charset=utf-8' , 'Cache-Control': 'no-cache,no-store' ,'service' :ServerHead} , req.url)
+			}else{
+				writeRes(req ,res ,opt,  503 ,'error raised' , null , req.url)
+			}
+			base.accessLog(err? 503 : 200, req , new Date - req.__request_time)
+		}
+	}
+
+	var tplPre = tplPreCache[this.hostPath] || (tplPreCache[this.hostPath] = this.hostPath.replace(/\//g,'').replace(/\\/g,'') );
+	if (!data) data = {}
+	data['_Request_query'] = this.req.__get
 		data['_Request_cookies'] = this.req.__cookies
-        data['_Request_ua'] = this.req.headers['user-agent']
-        data['_Request_host'] = this.req.headers.host
+		data['_Request_ua'] = this.req.headers['user-agent']
+		data['_Request_host'] = this.req.headers.host
 		data['_Request_raw'] = {'url': this.req.url 
 			, 'dataSouce' : this.req.dataSource||{}
 			,'query' : this.req.__get};
-		var tplPath = config.path.appPath +   this.hostPath + config.path.views
+	var tplPath = config.path.appPath +   this.hostPath + config.path.views
 
-        est.renderFile(tplPath ,tplName , data , callBack , tplPre );
-        //jst.renderFile(tplName, data , callBack );
+		est.renderFile(tplPath ,tplName , data , callBack , tplPre );
+	//jst.renderFile(tplName, data , callBack );
 
 }
 

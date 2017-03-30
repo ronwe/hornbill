@@ -117,6 +117,9 @@ function renderFile(tplpath, tplname, data, callBack, tplPre, requireFn) {
 
 		try{
 			html = _clearCache(compiledFile).call(data)
+			if (data._remote_to_include){
+				html = {'html' : html ,'remote_to_include' : data._remote_to_include}
+			}
 		}catch(err){
 			var splitLn = "\n------\n"
 			data._Request_raw = data._Request_raw || {}
@@ -134,6 +137,7 @@ function renderFile(tplpath, tplname, data, callBack, tplPre, requireFn) {
 			})
 		}
 		_cacheArr[tplname] = true
+
 		if(callBack) {
 			callBack(null, html)
 		} else {
@@ -226,7 +230,7 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 							fillCmpl( '__htm +=' + stripBlank(funcCon.substr(2)) + ";\n" , true)
 							break
 						default:
-							var _fn_name = '_extFn.html_encode',
+							var _fn_name = '_extFn.htmlEncode',
 								_func_stripted = stripBlank(funcCon.substr(1))
 
 							fillCmpl( '__htm += ' + _fn_name + '(' + _func_stripted + ");\n" , true)
@@ -235,6 +239,9 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 					break
 				case '#':
 					fillCmpl( '__htm += requireFn("' + funcCon.substr(1).trim() + '" )(this)||"";\n' , true)
+					break
+				case '!':
+					fillCmpl( '__htm += _extFn.remoteInclude.call(this , "' + funcCon.substr(1).trim() +  ' ");\n' , true)
 					break
 				default:
 					fillCmpl( funcCon + ';' , true)

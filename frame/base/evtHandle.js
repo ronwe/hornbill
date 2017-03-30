@@ -1,9 +1,9 @@
-var initData = {};
-var initDataKey = [];
+var initData = {}
+var initDataKey = []
 function listener( data){
-	this.listenStack = [];    
+	this.listenStack = []    
 	this.onOver = null
-    }
+}
 
 
 listener.prototype = {
@@ -38,7 +38,7 @@ function listenOver (callBack,noPrepare){
 		_cbk()
 		return
 	}
-	this.listenStack.map(function(item){
+	this.listenStack.forEach(function(item){
 		var toCallMethod = item[0], 
 			assignTag = item[1], 
 			toCallParam	= item[2];	
@@ -54,7 +54,7 @@ function listenOver (callBack,noPrepare){
 				_cbk()
 			}
 		}
-		toCallParam.unshift(evtPass);
+		toCallParam.unshift(evtPass)
 		toCallMethod.apply(null , toCallParam);
 	});
 }
