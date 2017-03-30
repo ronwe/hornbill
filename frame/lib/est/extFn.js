@@ -2,7 +2,7 @@ var fs = require('fs')
     ,path = require('path')
 var id = 0
 function genGuid(){
-	if (id > 1e1000) id = 0
+	if (id > 1e5) id = 0
 	return (+new Date).toString(36) + '-' + (id++)  + '-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
 		return v.toString(16);

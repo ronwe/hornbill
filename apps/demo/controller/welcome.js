@@ -1,6 +1,7 @@
 
 var controlFns = {
 	'default' : function(id ){
+		return this.render(id + '.html' ,{})
 		var model = this.loadModel('demo.js')
 		this.bindDefault()
 		this.listenOn( model.read, 'model')('a',{})
@@ -12,6 +13,9 @@ var controlFns = {
 	},
 	'index' :function() {
 		this.render('detect.html' , {})
+	},
+	'A' :function() {
+		this.render('call.html' , {})
 	},
     'demo' : function(){
 

@@ -1,4 +1,42 @@
 /*
+ * @author rongwei 3/25/2017   
+ * TODO 
+ * --去掉jquery 依赖 
+ * --生成guid
+ * --js swf 异步加载
+ * --browserWinPos 窗口位置
+ * --browserWinSize	浏览器窗口大小
+ *
+ * --screenData	
+ * --width	屏幕宽度
+ * --height	屏幕高度
+ * --realWidth	屏幕实际宽度
+ * --realHeight	屏幕实际高度
+ * --screenResolution 屏幕分辨率
+ * 
+ * --检测字体支持
+ * --sysfonts: {}	浏览器可用字体
+ * --去掉获取公网ip
+ * --超时处理
+ * --canvas 判断是否支持 isPointInPath
+ * --canvasFingerPrint  设备的帆布指纹信息(浏览器)
+ * --webGLFingerPrint  WebGL指纹 (浏览器)
+ * --webRTCFingerPrint  WebRTC指纹(浏览器)
+ * --CanvasData就是canvas指纹图像的murmurHash3
+ * --vertexShaderBestPrecision  fragmentShaderBestPrecision 格式化
+ * {}	本js最近25次的加载时间
+ * 上报
+ * */
+;(function(){
+var MAXWAITTIME = 5 //等待5秒即上报
+
+var SIGNTEXT = 'writen by enoch in http://www.elong.com '
+
+var UALIB = '/js/ua-parser.min.js'
+var WEBRTCLIB = '/js/DetectRTC.min.js'
+var WEBGLLIB = '/js/gl-info.js'
+var FLASHLIB = '/js/swfobject.js'
+/*
 *browserPlatform 浏览器运行的操作平台
 osArch	操作系统架构
 browserPlatform	浏览器运行的操作平台
@@ -7,6 +45,23 @@ DeviceType	设备类型
 Browser	浏览器类型
 */
 const UNKOWNKEY = 'unkown'
+
+function serialize(object){
+	var ret = []		
+	for (var key in object){
+		ret.push( key + '=' + object[key].toString())
+	}
+	return ret.join('&')
+		
+}
+
+function syncLoadScript(url ,done){
+	var script = document.createElement('script')
+	script.src = url 
+	script.onload = done
+
+	document.head.appendChild(script)
+}
 //位置
 /*
  * 获取公网ip http://freegeoip.net/json/?callback=
@@ -17,6 +72,7 @@ const UNKOWNKEY = 'unkown'
  * time	设备时间
  */
 
+/*
 function getPosInfo(done){
 	$.getJSON('http://freegeoip.net/json/?callback=?' , function(data){
 		var result = {}
@@ -26,6 +82,17 @@ function getPosInfo(done){
 		result.longitude = data.longitude
 		result.latitude = data.latitude
 		done(result)
+	})
+}
+*/
+
+/*
+ * 生成guid
+ * */
+function genGuid(){
+	return (+new Date).toString(36) + '-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+			    return v.toString(16);
 	})
 }
 /*
@@ -88,27 +155,34 @@ function getGeoInfo(done){
 *acceptEncoding	浏览器编码
 */
 function getUAInfo(done){
-	var parser = new UAParser()
-	var ua_info = parser.getResult()
+	syncLoadScript(UALIB , function(){
+		var parser = new UAParser()
+		var ua_info = parser.getResult()
+		done({
+			osArch : getCPU() || UNKOWNKEY,
+			osName : ua_info.os.name,
+			osVersion : ua_info.os.version ,
+			architecture: ua_info.cpu.architecture || UNKOWNKEY,
+			Browser: ua_info.browser.name,
+			DeviceType:ua_info.device.type ,
+			browserPlatform : ua_info.engine.name,
+			browserName : ua_info.browser.name, 
+			browserEngine : ua_info.engine.name,
+			browserVersion : ua_info.browser.version ,
+		})
+	})
+}
+
+function getNavigatorInfo(done){
 	done({
-		osArch : getCPU() || UNKOWNKEY,
-		osName : ua_info.os.name,
-		osVersion : ua_info.os.version ,
-		architecture: ua_info.cpu.architecture || UNKOWNKEY,
 		osLanguage : navigator.language || navigator.userLanguage || navigator.browserLanguage || navigator.systemLanguage || UNKOWNKEY,
 		osType : navigator.platform || UNKOWNKEY,
 		ua : navigator.userAgent,
-		Browser: ua_info.browser.name,
-		DeviceType:ua_info.device.type ,
-		browserPlatform : ua_info.engine.name,
 		pixelRatio : window.devicePixelRatio,
 
-		browserName : ua_info.browser.name, 
 		browserVerdor : navigator.vendor,
 		browserKernel : navigator.appName,
-		browserVersion : ua_info.browser.version ,
 		userAgent : navigator.userAgent,
-		browserEngine : ua_info.engine.name,
 		
 		acceptEncoding :  document.characterSet || document.charset,
 			
@@ -189,12 +263,102 @@ function getSupportInfo(done){
 		alterBrowser : getHasLiedBrowser(),
 		browserLanguage : navigator.language	,
 		supportJS : true,
-		canvasFingerPrint : isCanvasSupported, 
+		canvasFingerPrint : isCanvasSupported(), 
 		html5 : isAttributeSupported("input", "placeholder"),
 		css3 : cssSupport('textShadow'),
+		browserWinPos : serialize(getWindowPos()),
+		browserWinSize : serialize(getWindowSize()),
 		supportCookie : navigator.cookieEnabled,
-		flashVersion : getFlashVersion(),
 
+	})
+}
+
+// Given a string and an optional seed as an int, returns a 128 bit
+// hash using the x64 flavor of MurmurHash3, as an unsigned hex.
+  
+function murmurhash3_32_gc(key, seed) {
+	var remainder, bytes, h1, h1b, c1, c2, k1, i;
+
+	remainder = key.length & 3; // key.length % 4
+	bytes = key.length - remainder;
+	h1 = seed;
+	c1 = 0xcc9e2d51;
+	c2 = 0x1b873593;
+	i = 0;
+
+	while (i < bytes) {
+		k1 =
+			((key.charCodeAt(i) & 0xff)) |
+			((key.charCodeAt(++i) & 0xff) << 8) |
+			((key.charCodeAt(++i) & 0xff) << 16) |
+			((key.charCodeAt(++i) & 0xff) << 24);
+		++i;
+
+		k1 = ((((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16))) & 0xffffffff;
+		k1 = (k1 << 15) | (k1 >>> 17);
+		k1 = ((((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16))) & 0xffffffff;
+
+		h1 ^= k1;
+		h1 = (h1 << 13) | (h1 >>> 19);
+		h1b = ((((h1 & 0xffff) * 5) + ((((h1 >>> 16) * 5) & 0xffff) << 16))) & 0xffffffff;
+		h1 = (((h1b & 0xffff) + 0x6b64) + ((((h1b >>> 16) + 0xe654) & 0xffff) << 16));
+	}
+
+	k1 = 0;
+
+	switch (remainder) {
+		case 3: k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
+		case 2: k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
+		case 1: k1 ^= (key.charCodeAt(i) & 0xff);
+
+				k1 = (((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
+				k1 = (k1 << 15) | (k1 >>> 17);
+				k1 = (((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16)) & 0xffffffff;
+				h1 ^= k1;
+	}
+
+	h1 ^= key.length;
+
+	h1 ^= h1 >>> 16;
+	h1 = (((h1 & 0xffff) * 0x85ebca6b) + ((((h1 >>> 16) * 0x85ebca6b) & 0xffff) << 16)) & 0xffffffff;
+	h1 ^= h1 >>> 13;
+	h1 = ((((h1 & 0xffff) * 0xc2b2ae35) + ((((h1 >>> 16) * 0xc2b2ae35) & 0xffff) << 16))) & 0xffffffff;
+	h1 ^= h1 >>> 16;
+
+	return h1 >>> 0;
+}
+/*
+* canvasFingerPrint
+* canvasWinding
+* canvasData
+*/
+function getCanvasInfo(done){
+	if (!isCanvasSupported()) return done({})
+	var canvas = document.createElement("canvas")
+	var ctx =  canvas.getContext("2d")
+	
+	var murmur = (function(){	
+		var keys = []
+
+		var txt = SIGNTEXT
+		ctx.textBaseline = "top"
+		ctx.font = "14px 'Arial'"
+		ctx.textBaseline = "alphabetic"
+		ctx.fillStyle = "#f60"
+		ctx.fillRect(125,1,62,20)
+		ctx.fillStyle = "#069"
+		ctx.fillText(txt, 2, 15)
+		ctx.fillText("width +" + ctx.measureText(SIGNTEXT), 10, 100)
+		ctx.fillStyle = "rgba(102, 204, 0, 0.7)"
+		ctx.fillText(txt, 4, 17)
+		keys.push(canvas.toDataURL())
+
+		return  murmurhash3_32_gc(keys.join('###') , 31)
+	})()
+	
+	done({
+		canvasWinding : !!ctx.isPointInPath,
+		canvasData : murmur 
 	})
 }
 /*
@@ -289,15 +453,21 @@ dpi	屏幕点距
 screenColorDepth	屏幕颜色位数
 */
 function getScreenData(done){
+	var fonts_list  = fontSupported()
 	var dpi = getScreenDPI()
 	done({
 		width : screen.width,
 		height : screen.height,
 		availWidth : screen.availWidth ,
 		availHeight : screen.availHeight,
+		realWidth : document.documentElement.clientWidth ,
+		realHeight : document.documentElement.clientHeight,
 		colorDepth : screen.colorDepth ,
 		pixelDepth : screen.pixelDepth,		
 		devicePixelRatio : getDevicePixelRatio(),
+		sysfonts : fonts_list,
+		screenResolution : screen.width + 'x' + screen.height,
+		
 		dpi : dpi.x + ',' + dpi.y ,
 	})
 }
@@ -344,45 +514,108 @@ webGLVersion	WebGL版本
 */
 function getWebGLInfo(done){
 	var isSupported = isWebGlSupported()
-	var detail = isSupported ? glInfo() : {}
-	done({
-		isSupported :  isSupported ,
-		WebGLVendor : detail.vendor ,
-		WebGLRenderer: detail.renderer ,
-		unMaskedVendor : detail.unMaskedVendor ,
-		unMaskedRenderer : detail.unMaskedRenderer ,
-		maxColorBuffers : detail.maxColorBuffers ,
-		contextNames : detail.contextName ,
-		glVersion : detail.glVersion ,
-		shadingLanguageVersion : detail.shadingLanguageVersion ,
-		redBits : detail.redBits ,
-		greenBits : detail.greenBits,
-		blueBits : detail.blueBits ,
-		alphaBits : detail.alphaBits ,
-		maxRenderBufferSize : detail.maxRenderBufferSize ,
-		maxCombinedTextureImageUnits : detail.maxVertexTextureImageUnits ,
-		maxCubeMapTextureSize : detail.maxCubeMapTextureSize,
-		maxFragmentUniformVectors : detail.maxFragmentUniformVectors,
-		maxTextureImageUnits : detail.maxTextureImageUnits ,
-		maxTextureSize : detail.maxTextureSize,
-		maxVaryingVectors : detail.maxVaryingVectors ,
+	if (!isSupported){
+		return done({isSupported : false})
+	}
+	syncLoadScript(WEBGLLIB , function(){
+		var detail =  glInfo() || {}
+		done({
+			isSupported :  isSupported ,
+			WebGLVendor : detail.vendor ,
+			WebGLRenderer: detail.renderer ,
+			unMaskedVendor : detail.unMaskedVendor ,
+			unMaskedRenderer : detail.unMaskedRenderer ,
+			maxColorBuffers : detail.maxColorBuffers ,
+			contextNames : detail.contextName ,
+			glVersion : detail.glVersion ,
+			shadingLanguageVersion : detail.shadingLanguageVersion ,
+			redBits : detail.redBits ,
+			greenBits : detail.greenBits,
+			blueBits : detail.blueBits ,
+			alphaBits : detail.alphaBits ,
+			maxRenderBufferSize : detail.maxRenderBufferSize ,
+			maxCombinedTextureImageUnits : detail.maxVertexTextureImageUnits ,
+			maxCubeMapTextureSize : detail.maxCubeMapTextureSize,
+			maxFragmentUniformVectors : detail.maxFragmentUniformVectors,
+			maxTextureImageUnits : detail.maxTextureImageUnits ,
+			maxTextureSize : detail.maxTextureSize,
+			maxVaryingVectors : detail.maxVaryingVectors ,
 
-		maxVertexAttributes : detail.maxVertexAttributes ,
-		maxVertexUniformVectors : detail.maxVertexUniformVectors,
-		aliasedLineWidthRange :  detail.aliasedLineWidthRange,
-		aliasedPointSizeRange : detail.aliasedPointSizeRange , 
-		maxViewportDimensions: detail.maxViewportDimensions ,
-		maxAnisotropy : detail.maxAnisotropy,
-		vertexShaderBestPrecision : detail.vertexShaderBestPrecision ,
-		maxVertexTextureImageUnits: detail.maxVertexTextureImageUnits ,
-		fragmentShaderBestPrecision: detail.fragmentShaderBestPrecision,
-		depthBits: detail.depthBits,
-		stencilBits: detail.stencilBits,
-		fragmentShaderFloatIntPrecision: detail.fragmentShaderFloatIntPrecision,
-		extensions: detail.extensions ,
-		hardwareConcurrency: navigator.hardwareConcurrency, 
-		webGLVersion: detail.webglVersion,
+			maxVertexAttributes : detail.maxVertexAttributes ,
+			maxVertexUniformVectors : detail.maxVertexUniformVectors,
+			aliasedLineWidthRange :  serialize(detail.aliasedLineWidthRange),
+			aliasedPointSizeRange : serialize(detail.aliasedPointSizeRange) , 
+			maxViewportDimensions: detail.maxViewportDimensions.join(',') ,
+			maxAnisotropy : detail.maxAnisotropy,
+			vertexShaderBestPrecision : serialize(detail.vertexShaderBestPrecision) ,
+			maxVertexTextureImageUnits: detail.maxVertexTextureImageUnits ,
+			fragmentShaderBestPrecision: serialize(detail.fragmentShaderBestPrecision),
+			depthBits: detail.depthBits,
+			stencilBits: detail.stencilBits,
+			fragmentShaderFloatIntPrecision: detail.fragmentShaderFloatIntPrecision,
+			extensions: detail.extensions.join(',') ,
+			hardwareConcurrency: navigator.hardwareConcurrency, 
+			webGLVersion: detail.webglVersion,
+			webGLFingerPrint : webglSign()
+		})
 	})
+	function getWebglCanvas() {
+      var canvas = document.createElement("canvas");
+      var gl = null;
+      try {
+        gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      } catch(e) { /* squelch */ }
+      if (!gl) { gl = null; }
+      return gl;
+    }
+
+	function webglSign(){
+		var keys = []
+		var gl;
+		var fa2s = function(fa) {
+			gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			gl.enable(gl.DEPTH_TEST);
+			gl.depthFunc(gl.LEQUAL);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			return "[" + fa[0] + ", " + fa[1] + "]";
+		};
+		gl = getWebglCanvas();
+		if(!gl) { return null; }
+		// WebGL fingerprinting is a combination of techniques, found in MaxMind antifraud script & Augur fingerprinting.
+		// First it draws a gradient object with shaders and convers the image to the Base64 string.
+		// Then it enumerates all WebGL extensions & capabilities and appends them to the Base64 string, resulting in a huge WebGL string, potentially very unique on each device
+		// Since iOS supports webgl starting from version 8.1 and 8.1 runs on several graphics chips, the results may be different across ios devices, but we need to verify it.
+		var result = [];
+		var vShaderTemplate = "attribute vec2 attrVertex;varying vec2 varyinTexCoordinate;uniform vec2 uniformOffset;void main(){varyinTexCoordinate=attrVertex+uniformOffset;gl_Position=vec4(attrVertex,0,1);}";
+		var fShaderTemplate = "precision mediump float;varying vec2 varyinTexCoordinate;void main() {gl_FragColor=vec4(varyinTexCoordinate,0,1);}";
+		var vertexPosBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+		var vertices = new Float32Array([-.2, -.9, 0, .4, -.26, 0, 0, .732134444, 0]);
+		gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+		vertexPosBuffer.itemSize = 3;
+		vertexPosBuffer.numItems = 3;
+		var program = gl.createProgram(), vshader = gl.createShader(gl.VERTEX_SHADER);
+		gl.shaderSource(vshader, vShaderTemplate);
+		gl.compileShader(vshader);
+		var fshader = gl.createShader(gl.FRAGMENT_SHADER);
+		gl.shaderSource(fshader, fShaderTemplate);
+		gl.compileShader(fshader);
+		gl.attachShader(program, vshader);
+		gl.attachShader(program, fshader);
+		gl.linkProgram(program);
+		gl.useProgram(program);
+		program.vertexPosAttrib = gl.getAttribLocation(program, "attrVertex");
+		program.offsetUniform = gl.getUniformLocation(program, "uniformOffset");
+		gl.enableVertexAttribArray(program.vertexPosArray);
+		gl.vertexAttribPointer(program.vertexPosAttrib, vertexPosBuffer.itemSize, gl.FLOAT, !1, 0, 0);
+		gl.uniform2f(program.offsetUniform, 1, 1);
+		gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexPosBuffer.numItems);
+		
+		keys.push(gl.canvas.toDataURL())
+		if (gl.canvas != null) { 
+			return murmurhash3_32_gc(keys.join('###'),31)
+		 }
+	}
 }
 /*
 webRtc	
@@ -398,22 +631,43 @@ IceSupport	是否支持onicecandidate事件
 IceCandidates	Ice Candidates数据
 IPADDR	本地IP地址
 webRTCFingerPrint	WebRTC指纹(浏览器)
+//http://www.52bug.cn/post-2446.html
 */
 function getWebRtcInfo(done){
-	var detect_RTC = DetectRTC
-	detect_RTC.DetectLocalIPAddress(function(ip){
-		done({
-			shouldBeSupported : detect_RTC.isWebRTCSupported,
-			deviceEnum  : detect_RTC.MediaDevices.length,
-			//mediaSources : detect_RTC.
-			//AudioContext : detect_RTC.
-			//deviceCount : detect_RTC.
-			hasMic : detect_RTC.hasMicrophone , 
-			hasWebcam : detect_RTC.hasWebcam ,
-			hasSpeaker : detect_RTC.hasSpeakers ,
-			//IceSupport : window.RTCPeerConnection || window.webkitRTCPeerConnection ,
-			//IceCandidates : detect_RTC.
-			IPADDR : ip
+	syncLoadScript(WEBRTCLIB , function(){
+		var detect_RTC = DetectRTC
+		detect_RTC.DetectLocalIPAddress(function(ip){
+			var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection
+			var offerer = new RTCPeerConnection({
+                    iceServers: []
+                })
+			offerer.createDataChannel('' , {reliable:false})
+			offerer.onicecandidate= function(evt){
+				//console.log('evt' , evt)
+			}
+		
+			offerer.createOffer(function(offerDesc){
+				//var webrtc_hash = murmurhash3_32_gc([offerDesc.sdp].join('###') , 31)
+
+			},function(err){
+				//console.log('offer failed' ,err)
+			})
+			// RTCPeerConnection.indexOf(onicecandidate)
+			
+			done({
+				shouldBeSupported : detect_RTC.isWebRTCSupported,
+				deviceEnum  : detect_RTC.MediaDevices.length,
+				//mediaSources : detect_RTC.
+				//AudioContext : detect_RTC.
+				//deviceCount : detect_RTC.
+				hasMic : detect_RTC.hasMicrophone , 
+				hasWebcam : detect_RTC.hasWebcam ,
+				hasSpeaker : detect_RTC.hasSpeakers ,
+				IceSupport : 'onicecandidate' in offerer,
+				//IceCandidates : detect_RTC.
+				webRTCFingerPrint : murmurhash3_32_gc(ip,3) ,
+				IPADDR : ip
+			})
 		})
 	})
 }
@@ -539,13 +793,52 @@ function getOtherInfo(done){
 function getFlashInfo(done){
 	if (!getFlashSupport()) return done({})
 
-	if (!window.FlashEnv) return window.setTimeout(function(){
-		getFlashInfo(done)
-	},200)
+	syncLoadScript(FLASHLIB , function(){
+		swfobject.registerObject("myId", "9.0.0", "expressInstall.swf");
+		window.flashInfo = function(info){
+			try{
+				var flash_env = JSON.parse(info)
+				flash_env.flashVersion =  getFlashVersion()
+				done(flash_env)
+			}catch(err){
+				done({})	
+			}
+		}
+		
+		var div = document.createElement('div')	
+		div.style.cssText = 'height: 0; left: -1000%; position: absolute; top: -100%; width: 0;overflow:hidden;'
 
-	done(window.FlashEnv)
+		var strVar="";
+		strVar += "<object id=\"myId\" classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" width=\"3\" height=\"1\">";
+		strVar += "                <param name=\"movie\" value=\"test.swf\" \/>";
+		strVar += "                <!--[if !IE]>-->";
+		strVar += "                <object type=\"application\/x-shockwave-flash\" data=\"test.swf\" width=\"3\" height=\"1\">";
+		strVar += "                    <!--<![endif]-->";
+		strVar += "                    <div>";
+		strVar += "                        <h1>Alternative content<\/h1>";
+		strVar += "                        <p><a href=\"http:\/\/www.adobe.com\/go\/getflashplayer\"><img src=\"http:\/\/www.adobe.com\/images\/shared\/download_buttons\/get_flash_player.gif\" alt=\"Get Adobe Flash player\" \/><\/a><\/p>";
+		strVar += "                    <\/div>";
+		strVar += "                    <!--[if !IE]>-->";
+		strVar += "                <\/object>";
+		strVar += "                <!--<![endif]-->";
+		strVar += "            <\/object>";
+		div.innerHTML = strVar 
+			
+		document.body.appendChild(div)
+		
+	})
 }
 
+function getWindowSize(){
+	var viewWidth = (typeof window.innerWidth === "number") ? window.innerWidth : document.documentElement.clientWidth;
+	var viewHeight = (typeof window.innerHeight === "number") ? window.innerHeight : document.documentElement.clientHeight;
+	return {'width' : viewWidth,'height' : viewHeight}
+}
+function getWindowPos(){
+	var leftPos = (typeof window.screenLeft === "number") ? window.screenLeft : window.screenX;
+	var topPos = (typeof window.screenTop === "number") ? window.screenTop : window.screenY;
+	return {'left' : leftPos , 'top' : topPos}
+}
 function getDevicePixelRatio() {
 	var ratio = 1;
 	// To account for zoom, change to use deviceXDPI instead of systemXDPI
@@ -596,7 +889,7 @@ function isCanvasSupported() {
 }
 function isWebGlSupported() {
 	// code taken from Modernizr
-	if (!this.isCanvasSupported()) {
+	if (!isCanvasSupported()) {
 		return false;
 	}
 
@@ -612,13 +905,16 @@ function isWebGlSupported() {
 	return !!window.WebGLRenderingContext && !!glContext;
 }
 function getScreenDPI(){
-	var div = $("<div style='height: 1in; left: -100%; position: absolute; top: -100%; width: 1in;'></div>")
-	.appendTo('body')
+	var div = document.createElement('div') 
+	div.style.cssText = 'height: 1in; left: -100%; position: absolute; top: -100%; width: 1in;'
+
+	document.body.appendChild(div)
+
 	var dpi = {
-		x : div[0].offsetWidth,
-		y : div[0].offsetHeight
+		x : div.offsetWidth,
+		y : div.offsetHeight
 	}
-	div.remove()
+	document.body.removeChild(div)
 	return dpi
 
 }
@@ -656,10 +952,6 @@ function supportImage(done){
 	img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
 }
 
-function isCanvasSupported(){
-	var elem = document.createElement('canvas');
-	return !!(elem.getContext && elem.getContext('2d'));
-}
 function isAttributeSupported(tagName, attrName) {
 	var val = false;
 	// Create element
@@ -863,31 +1155,123 @@ function getBatteryInfo(done){
 }
 
 
+
+var docCookies = {
+	getItem: function (sKey) {
+		return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
+	},
+	setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
+		if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) { return false; }
+		var sExpires = "";
+		if (vEnd) {
+			switch (vEnd.constructor) {
+				case Number:
+					sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
+					break;
+				case String:
+					sExpires = "; expires=" + vEnd;
+					break;
+				case Date:
+					sExpires = "; expires=" + vEnd.toUTCString();
+					break;
+			}
+		}
+		document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
+		return true;
+	}
+}
+
+function fontSupported(){
+	var fonts_list = "Agency FB,Aharoni,Algerian,Andalus,Angsana New,AngsanaUPC,Aparajita,Arabic Typesetting,Arial,Arial Black,Arial Narrow,Arial Rounded MT Bold,Arial Unicode MS,Baskerville Old Face,Batang,BatangChe,Bauhaus 93,Bell MT,Berlin Sans FB,Berlin Sans FB Demi,Bernard MT Condensed,Bodoni MT,Bodoni MT Black,Bodoni MT Poster Compressed,Book Antiqua,Bookman Old Style,Bookshelf Symbol 7,Britannic Bold,Broadway,Browallia New,BrowalliaUPC,Brush Script MT,Calibri,Calibri Light,Californian FB,Calisto MT,Cambria,Cambria Math,Candara,Castellar,Centaur,Century,Century Gothic,Century Schoolbook,Chiller,Colonna MT,Comic Sans MS,Consolas,Constantia,Cooper Black,Copperplate Gothic Bold,Copperplate Gothic Light,Corbel,Cordia New,CordiaUPC,Courier New,Curlz MT,DFKai-SB,DaunPenh,David,DilleniaUPC,DokChampa,Dotum,DotumChe,Ebrima,Edwardian Script ITC,Elephant,Engravers MT,Eras Bold ITC,Eras Demi ITC,Eras Light ITC,Eras Medium ITC,Estrangelo Edessa,EucrosiaUPC,Euphemia,Felix Titling,Footlight MT Light,Forte,FrankRuehl,Franklin Gothic Book,Franklin Gothic Demi,Franklin Gothic Demi Cond,Franklin Gothic Heavy,Franklin Gothic Medium,Franklin Gothic Medium Cond,FreesiaUPC,Freestyle Script,French Script MT,Gabriola,Garamond,Gautami,Georgia,Gigi,Gill Sans MT,Gill Sans MT Condensed,Gill Sans MT Ext Condensed Bold,Gill Sans Ultra Bold,Gill Sans Ultra Bold Condensed,Gisha,Gloucester MT Extra Condensed,Goudy Old Style,Goudy Stout,Gulim,GulimChe,Gungsuh,GungsuhChe,Haettenschweiler,Harlow Solid Italic,Harrington,High Tower Text,Impact,Imprint MT Shadow,Informal Roman,IrisUPC,Iskoola Pota,JasmineUPC,Jokerman,Juice ITC,Kalinga,Kartika,Khmer UI,KodchiangUPC,Kokila,Kristen ITC,Kunstler Script,Lao UI,Latha,Leelawadee,Levenim MT,LilyUPC,Lucida Bright,Lucida Calligraphy,Lucida Console,Lucida Fax,Lucida Handwriting,Lucida Sans,Lucida Sans Typewriter,Lucida Sans Unicode,MS Gothic,MS Mincho,MS Outlook,MS PGothic,MS PMincho,MS Reference Sans Serif,MS Reference Specialty,MS UI Gothic,MT Extra,MV Boli,Magneto,Maiandra GD,Malgun Gothic,Mangal,Marlett,Matura MT Script Capitals,Meiryo,Meiryo UI,Microsoft Himalaya,Microsoft JhengHei,Microsoft New Tai Lue,Microsoft PhagsPa,Microsoft Sans Serif,Microsoft Tai Le,Microsoft Uighur,Microsoft Yi Baiti,MingLiU,MingLiU-ExtB,MingLiU_HKSCS,MingLiU_HKSCS-ExtB,Miriam,Miriam Fixed,Mistral,Modern No. 20,Mongolian Baiti,Monotype Corsiva,MoolBoran,Narkisim,Niagara Engraved,Niagara Solid,Nyala,OCR A Extended,Old English Text MT,Onyx,PMingLiU,PMingLiU-ExtB,Palatino Linotype,Papyrus,Parchment,Perpetua,Perpetua Titling MT,Plantagenet Cherokee,Playbill,Poor Richard,Pristina,Raavi,Ravie,Rockwell,Rockwell Condensed,Rockwell Extra Bold,Rod,Sakkal Majalla,Segoe Print,Segoe Script,Segoe UI,Segoe UI Light,Segoe UI Semibold,Segoe UI Symbol,Shonar Bangla,Showcard Gothic,Shruti,SimSun-ExtB,Simplified Arabic,Simplified Arabic Fixed,Snap ITC,Stencil,Sylfaen,Symbol,Tahoma,Tempus Sans ITC,Times New Roman,Traditional Arabic,Trebuchet MS,Tunga,Tw Cen MT,Utsaah,Vani,Verdana,Vijaya,Viner Hand ITC,Vivaldi,Vladimir Script,Vrinda,Webdings,Wide Latin,Wingdings,Wingdings 2,Wingdings 3,仿宋,华文中宋,华文仿宋,华文宋体,华文彩云,华文新魏,华文楷体,华文琥珀,华文细黑,华文行楷,华文隶书,宋体,幼圆,微软雅黑,新宋体,方正姚体,方正舒体,楷体,隶书,黑体".split(",")
+	var fontDetector = new Detector()
+	var supported_fonts = []
+	for (var i = fonts_list.length-1; i>=0;i--){
+		if (fontDetector.detect(fonts_list[i])) supported_fonts.push(fonts_list[i])
+		
+	}
+	return supported_fonts.join(',')
+
+}
+var Detector = function() {
+	// a font will be compared against all the three default fonts.
+	// and if it doesn't match all 3 then that font is not available.
+	var baseFonts = ['monospace', 'sans-serif', 'serif'];
+
+	//we use m or w because these two characters take up the maximum width.
+	// And we use a LLi so that the same matching fonts can get separated
+	var testString = "mmmmmmmmmmlli";
+
+	//we test using 72px font size, we may use any size. I guess larger the better.
+	var testSize = '72px';
+
+	var h = document.getElementsByTagName("body")[0];
+
+	// create a SPAN in the document to get the width of the text we use to test
+	var s = document.createElement("span");
+	s.style.fontSize = testSize;
+	s.innerHTML = testString;
+	var defaultWidth = {};
+	var defaultHeight = {};
+	for (var index in baseFonts) {
+		//get the default width for the three base fonts
+		s.style.fontFamily = baseFonts[index];
+		h.appendChild(s);
+		defaultWidth[baseFonts[index]] = s.offsetWidth; //width for the default font
+		defaultHeight[baseFonts[index]] = s.offsetHeight; //height for the defualt font
+		h.removeChild(s);
+	}
+
+	function detect(font) {
+		var detected = false;
+		for (var index in baseFonts) {
+			s.style.fontFamily = font + ',' + baseFonts[index]; // name of the font along with the base font for fallback.
+			h.appendChild(s);
+			var matched = (s.offsetWidth != defaultWidth[baseFonts[index]] || s.offsetHeight != defaultHeight[baseFonts[index]]);
+			h.removeChild(s);
+			detected = detected || matched;
+		}
+		return detected;
+	}
+
+	this.detect = detect;
+}
+
 function main(done){
 	var ret = {}
 	var cnt = 0
+
+	var reported = false
 	function callDone(){
+		if (reported) return 
+		reported = true
 		done(ret)
 	}
 	function runGetInfo(fn){
 		cnt++
 		window.setTimeout(function(){
-			fn( function(result){
-				for(var k in result){
-					if (!(k in ret) || UNKOWNKEY === ret[k]) {
-						ret[k] = result[k]
-					} 
-				}
+			try{
+				fn( function(result){
+					for(var k in result){
+						if (!(k in ret) || UNKOWNKEY === ret[k]) {
+							ret[k] = result[k]
+						} 
+					}
+					cnt--
+					if (cnt <= 0) callDone() 
+				})	
+			}catch(err){
 				cnt--
 				if (cnt <= 0) callDone() 
-			})	
+			}
 		} , 5)
 
 	}
-	runGetInfo(getPosInfo) 
+	///runGetInfo(getPosInfo) 
+	
 	runGetInfo(getTimeInfo) 
 	runGetInfo(getGeoInfo) 
 	runGetInfo(getUAInfo) 
+	runGetInfo(getNavigatorInfo) 
 	runGetInfo(getBatteryInfo) 
 	runGetInfo(getSupportInfo) 
 	runGetInfo(supportImage) 
@@ -899,18 +1283,52 @@ function main(done){
 	runGetInfo(getPerformaceInfo) 
 	runGetInfo(getOtherInfo) 
 	runGetInfo(getFlashInfo) 
+	runGetInfo(getCanvasInfo) 
+
+	window.setTimeout(function(){
+		callDone()
+	} , MAXWAITTIME * 1000)
 
 }
 main(function(result){
+	const GuidKey = '_uid'
+	var guid = docCookies.getItem(GuidKey)
+	if (!guid){
+ 		guid = genGuid()
+		docCookies.setItem(GuidKey , guid , Infinity)
+	}
+	
 	var arr = []
 	for(var k in result){
 		arr.push('<tr><td>' + k + '</td><td>' + result[k] +'</td></tr>' )//+ '     ' + result[k])
 
 	}
+	upPost(result)
 	//arr = '<p>' + arr.join('</p><p>') + '</p>'
 	arr = '<table>' + arr.join('\n') + '</table>'
-	$('#result').html(arr)
-	console.log(result)
+	document.getElementById('result').innerHTML = arr
+	console.log(guid , result)
 })
 
+function urlEncode(data){
+	var ret = []
+		,i = 0
+	for (var key in data){
+		ret.push(key + '=' + encodeURIComponent(data[key]))
+	}
+	return ret.join('&')
+}
+function upPost(data){
+	//http://dcode.io/protobuf.js/#examples
+	var url_params = urlEncode(data)
+	protobuf.load('data.proto' , function(err , root){
+		console.time('a')
+		var Post = root.lookup('cola.Info.Con')
+		var message = Post.create(data)
+		var buffer = Post.encode(message).finish()
+		console.timeEnd('a')
+		console.log(buffer.byteLength , JSON.stringify(data).length , url_params.length)
+	})
+}
 
+})()
