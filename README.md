@@ -12,9 +12,9 @@ hornbill.start({
 
 
 默认端口6001  
-
-### 2016.5.7  
-提供js模块加载功能(commonjs)
+### 2017.3.30
+模版引擎支持远程include 
+语法： <%! 远程uri %>
 
 ### 2017.3.21
 启动入口支持中间件注册
@@ -23,3 +23,6 @@ hornbill.start({
 >  host: 'demo', //* 对virtual_host 进行匹配
 >  after: true    //默认为false 即发生在apps处理之前
 > })
+
+### 2016.5.7  
+提供js模块加载功能(commonjs)
