@@ -4,6 +4,10 @@ var util = require("util")
 var est = require(config.path.lib + 'est/est.js');
 var callApiLib = require(config.path.base + 'remoteApi.js') 
 var querystring = require('querystring') 
+	, path =  require("path")
+	, url =  require("url")
+	, stream = require('stream')
+
 var siteInfo =  config.site
 var eventLib = require(config.path.base + 'evtHandle.js')
 eventLib.prepareData(siteInfo)
@@ -22,6 +26,28 @@ var jsDepCache = {}
 	,tplPreCache = {}
 
 var sendToRender
+
+
+function EchoStream (options) { 
+	stream.Writable.call(this)
+	this.options = options || {}
+	if (this.options.extend) {
+		util._extend(this , this.options.extend)
+	}
+	this.string = ''
+}
+util.inherits(EchoStream, stream.Writable)
+
+EchoStream.prototype._write = function (chunk, encoding, done) { 
+	this.string += chunk
+  	done()
+}
+EchoStream.prototype.end = function(chunk){
+	this.string += chunk || ''
+	if (this.options.cbk) {
+		this.options.cbk(this.string)
+	}
+}
 
 function writeRes (req , res , opt , status , body, header , debugStr){		
 	if (res.headersSent){
@@ -244,7 +270,33 @@ function render(tplName , data , callBack){
 			 return function(evt){
 				 api(evt  )
 			 }
-			
+		}
+		function readStaticFile(file , type){
+			var suffix = path.extname(file)
+			if (!suffix) return
+
+			if (!type) type = suffix.slice(1)
+			return function(evt){
+				var response = new EchoStream({
+					'extend' : {
+						'writeHead' : function(status_code,headers){
+							if (200 != status_code) evt(file + ' not exits')
+						}
+					},
+					'cbk' : function(content){
+						switch(type){
+							case 'js':
+								content = '<script type="text/javascript">\n' + content + '\n</script>'				
+								break
+							case 'css':
+								content = '<style type="text/css">\n' + content + '\n</style>'				
+								break
+						}
+						evt(null , content )
+					}
+				}) 
+				opt.handleRoute(req ,response , opt.virtualHostName, {'pathname' : '/' + file}) 
+			}
 		}
 
 		callBack = function(err , html){
@@ -255,17 +307,25 @@ function render(tplName , data , callBack){
 				if (html.remote_to_include){
 					var rti_event = eventLib.__create()
 					for (var placeholder in html.remote_to_include){
-						var toCallMethod = readFromRemote(html.remote_to_include[placeholder])
-						rti_event.listenOn( toCallMethod , placeholder,[])
+						var  include_opt = html.remote_to_include[placeholder]
+						if (include_opt.url){
+							var toCallMethod = readFromRemote(include_opt.url)
+							rti_event.listenOn( toCallMethod , placeholder,[])
+						}else if (include_opt.staticMod){
+							var toCallMethod = readStaticFile(include_opt.staticMod , include_opt.type)	
+							if (toCallMethod) rti_event.listenOn( toCallMethod , placeholder,[])
+						}
 					}
 					rti_event.listenOver(function(remotes){
 						for (var placeholder in remotes){
 							var remote_html = remotes[placeholder]
 							if (false === remote_html){
-								remote_html = 'call remote : ' + html.remote_to_include[placeholder]  + ' fail'
+								var  include_opt = html.remote_to_include[placeholder]
+								remote_html = '<!--call remote : ' + include_opt.url  + ' fail-->'
 							}else{
 								remote_html = remote_html.toString()
 							}
+							remote_html = '\n' + remote_html + '\n'
 							_before_html = _before_html.replace(placeholder, remote_html)				
 						}
 						callBack(null , _before_html)
@@ -288,13 +348,15 @@ function render(tplName , data , callBack){
 
 	var tplPre = tplPreCache[this.hostPath] || (tplPreCache[this.hostPath] = this.hostPath.replace(/\//g,'').replace(/\\/g,'') );
 	if (!data) data = {}
+
 	data['_Request_query'] = this.req.__get
-		data['_Request_cookies'] = this.req.__cookies
-		data['_Request_ua'] = this.req.headers['user-agent']
-		data['_Request_host'] = this.req.headers.host
-		data['_Request_raw'] = {'url': this.req.url 
-			, 'dataSouce' : this.req.dataSource||{}
-			,'query' : this.req.__get};
+	data['_Request_cookies'] = this.req.__cookies
+	data['_Request_ua'] = this.req.headers['user-agent']
+	data['_Request_host'] = this.req.headers.host
+	data['_Request_raw'] = {'url': this.req.url 
+		, 'dataSouce' : this.req.dataSource||{}
+		,'query' : this.req.__get};
+
 	var tplPath = config.path.appPath +   this.hostPath + config.path.views
 
 		est.renderFile(tplPath ,tplName , data , callBack , tplPre );

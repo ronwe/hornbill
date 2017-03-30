@@ -1,8 +1,9 @@
 var fs = require('fs')
     ,path = require('path')
-
+var id = 0
 function genGuid(){
-	return (+new Date).toString(36) + '-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+	if (id > 1e1000) id = 0
+	return (+new Date).toString(36) + '-' + (id++)  + '-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
 		return v.toString(16);
 	})
@@ -28,12 +29,16 @@ exports.urlEncode = function(str){
 }
 
 /*
- * 需要调用远程的url 需要先返回占位*/
-exports.remoteInclude = function(url){
+ * 需要调用远程的url 需要先返回占位
+* opt 
+* url
+*/
+exports.remoteInclude = function(opt){
+	opt = opt || {}
 	var guid = genGuid()
-	var placeholder = '<' + guid + '></' + guid + ' >'
+	var placeholder = '<%' + guid + '%><%/' + guid + '%>'
 	this._remote_to_include = this._remote_to_include || {}
-	this._remote_to_include[placeholder] = url
+	this._remote_to_include[placeholder] = opt 
 	return placeholder
 }
 exports.nl2br = function(html){

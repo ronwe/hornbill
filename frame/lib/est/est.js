@@ -179,6 +179,9 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
     function requireFn(tpl) { return est.renderFile('" + winPath(tplpath) + "' ,tpl , null , null ,'" + tplPre + "' ,true); } ; \n \
     function __getHtml () { \n \
 		var __StaticModel = this.__StaticModel = this.__StaticModel || {}; \n \
+		var IncludeStatic = function ( staticMod, type) { \n \
+			__htm += _extFn.remoteInclude.call(this,{staticMod:staticMod,type:type}) ; \n \
+		}.bind(this); \n \
 		function StaticModel(type, model){ \n \
 			if (!type) return \n \
 			var static = __StaticModel[type];if(!static) static = __StaticModel[type] = []; \n\
@@ -241,7 +244,7 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 					fillCmpl( '__htm += requireFn("' + funcCon.substr(1).trim() + '" )(this)||"";\n' , true)
 					break
 				case '!':
-					fillCmpl( '__htm += _extFn.remoteInclude.call(this , "' + funcCon.substr(1).trim() +  ' ");\n' , true)
+					fillCmpl( '__htm += _extFn.remoteInclude.call(this , {url:"' + funcCon.substr(1).trim() +  ' "});\n' , true)
 					break
 				default:
 					fillCmpl( funcCon + ';' , true)
