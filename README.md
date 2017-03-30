@@ -12,6 +12,15 @@ hornbill.start({
 
 
 默认端口6001  
+
+### 2017.3.31
+模版引擎支持将静态文件直接输出到页面
+语法： <% IncludeStatic('demo.js') %>
+页面源码会显示为 
+>>> <script type="text/javascript"> 
+>>>  demo.js的代码 ，注： 这里的js内容会被指定编译器处理，但不会经过中间件处理
+>>> </script>
+
 ### 2017.3.30
 模版引擎支持远程include 
 语法： <%! 远程uri %>
