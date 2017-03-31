@@ -12,7 +12,7 @@ virtual_host.json 配置虚拟空间，根据域名指定项目目录
 当访问域名为abc.com时 访问apps下demo项目
 
 etc.json
-·
+···
 {"uploadTmp":false,
 "watchingTpl":true,//自动热更新，开发模式为true ,线上应改为false
 "fussTpl":false, //是否混淆模版
@@ -30,4 +30,4 @@ etc.json
 },
 "onPort":6001 //服务占用端口
 }
-·
+···
