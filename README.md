@@ -26,7 +26,8 @@ hornbill.start({
 >>>  demo.js的代码 ，注： 这里的js内容会被指定编译器处理，但不会经过中间件处理
 >>> </script>
 
-服务启动参数增加staticCompilerPath 
+服务启动参数增加staticCompilerPath，指定静态文件编译器路径，默认系统带combo模块用以支持模块化包装
+
 >>> hornbill.start({
 >>>    'appsPath' : path.resolve(__dirname , '../apps')
 >>>    ,'configPath' : path.resolve(__dirname,'config')
