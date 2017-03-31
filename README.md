@@ -12,6 +12,11 @@ hornbill.start({
 
 
 默认端口6001  
+### 2017.4.1
+静态脚本支持合并输出
+比如 http://127.0.0.1:6001/demo,js/jquery.js
+文件用,逗号分割 只在最后带文件后缀名
+注意：文件打印顺序取决于文件读取速度，和url上的顺序无关
 
 ### 2017.3.31
 模版引擎支持将静态文件直接输出到页面
@@ -20,6 +25,13 @@ hornbill.start({
 >>> <script type="text/javascript"> 
 >>>  demo.js的代码 ，注： 这里的js内容会被指定编译器处理，但不会经过中间件处理
 >>> </script>
+
+服务启动参数增加staticCompilerPath 
+>>> hornbill.start({
+>>>    'appsPath' : path.resolve(__dirname , '../apps')
+>>>    ,'configPath' : path.resolve(__dirname,'config')
+>>>    ,'staticCompilerPath' : path.resolve(__dirname,'compiler')
+>>> })
 
 ### 2017.3.30
 模版引擎支持远程include 
