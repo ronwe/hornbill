@@ -7,6 +7,7 @@ var fs = require("fs"),
 	
 var config = require('./config.js') 
 var lookuped = {}
+	,EchoStream
 const SEP = path.sep
 
 var middleware_before = []
@@ -27,6 +28,7 @@ function setGlobal(options){
 	config.setAbsPath( __dirname , {
 		'configPath' : options.configPath 
 		,'appsPath' : options.appsPath 
+		,'staticCompilerPath' : options.staticCompilerPath
 	})
 	global.config = config
 	global.base = require(config.path.base + 'base.js')
@@ -37,6 +39,7 @@ function setGlobal(options){
 	if (!fs.existsSync(config.path.compiledViews)){
 		require('child_process').execSync('mkdir -p ' + config.path.compiledViews)
 	}
+	EchoStream = require(config.path.lib + 'stream.js').write
 }
 
 function renderWorker(req ,res ,opt , context){
@@ -110,39 +113,80 @@ function handleRoute(request ,response , virtualHostName  , reqUrl){
 	var hostPath =   virtualHostName || ''
 	if (hostPath) hostPath += SEP 
 
-
     var reqPath =   reqUrl.pathname.substr(1)
 	//有后缀名的是静态文件 pipe to static
 	var suffix = path.extname(reqPath)
     var suffix_conf = config.etc.compile[suffix]
+
 	if (suffix  ) {
 		if (response.setHeader && ['.ttf' , '.woff','.eot' , '.svg'].indexOf(suffix) !== -1) response.setHeader('Access-Control-Allow-Origin' , '*')
         // 查找对应compiler    
         if (response.setHeader && suffix_conf) response.setHeader('content-type', suffix_conf.contentType || 'text/plain')
 
         var staticCompiler = suffix_conf && suffix_conf.compiler 
-        if (staticCompiler) staticCompiler = path.resolve(config.path.lib ,'compiler' , staticCompiler) 
-        if (config.etc.compiler && '~' === reqPath.slice(0,1)  && fs.existsSync( staticCompiler ) ) {
-            require(staticCompiler).compile(
-                { 'modPath' : config.path.appPath  + hostPath + '/static/' , 'mods' : reqPath.slice(1)  } 
-                , function(err , context){
-                if (err) {
-                    response.writeHead(404)
-                    response.end(err.toString())
-                } else {
-                    response.end(context.toString())
-                }
-            })
+        if (staticCompiler) staticCompiler = path.resolve(config.path.staticCompiler , staticCompiler) 
+
+		function echoError(err){
+			response.writeHead(404)
+			response.end(err.toString())
+		}
+
+		function comboFile(files ,literal , done){
+
+			files = files.slice(0, - suffix.length).split(',')
+				
+			var files_count = files.length
+				,combined_count_down  = files_count 
+			if (!files_count) return echoError('file name not assign')
+			files.forEach(function(file){
+				file = filterFilePath(file) + suffix
+				var pipe_stream = files_count > 1 ? (new EchoStream({'cbk' : function(content){
+					response.write(content)
+					combined_count_down--
+					if (combined_count_down <=0 ) {
+						response.end()
+						done && done()
+					}
+				}})): response
+				literal(file, pipe_stream)
+			})
+		}
+		function filterFilePath(file){
+			return file.replace(/\.\.\//g,'').replace(/^\//g,'')
+		}
+		var static_root_path = path.resolve(config.path.appPath  , hostPath , 'static')
+        if (config.etc.compiler && '~' === reqPath.slice(0,1) ){
+			reqPath = reqPath.slice(1)
+		   	fs.stat(staticCompiler ,function(err, stats)  {
+				if (err) {
+					return echoError('comipler lost') 
+				}
+
+				var CompilerInst = require(staticCompiler)
+				comboFile(reqPath , function(file , read_to){
+					CompilerInst.compile(
+						{ 'modPath' : static_root_path , 'mods' : file} 
+						, function(err , context){
+							if (err) {
+								echoError(err)
+							} else {
+								read_to.end(context.toString())
+							}
+						}
+					)
+				})
+					
+			})
             
         } else { 
-
-            var staticFile = config.path.appPath  + hostPath + '/static/'  + reqPath
-            fs.createReadStream(staticFile)
-                .on('error' , function(err){
-                    response.writeHead(404)
-                    response.end(err.toString())
-                })
-                .pipe(response)
+			function readFile(file ,read_to ){
+				read_to = read_to || response
+				fs.createReadStream(path.resolve(static_root_path , file))
+					.on('error' , echoError)
+					.pipe(read_to)
+			}
+			if (['.js' , '.css'].indexOf(suffix) === -1) return readFile(filterFilePath(reqPath))
+			comboFile(reqPath ,readFile )
          }
 		return
 	}

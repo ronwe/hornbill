@@ -54,7 +54,7 @@ function loadMod(modPath , modName ,load_stack , _mods_state , _bool_load_depenc
 
         _mods_state[modName] =  STATUS.LOADED
 
-        cbk(null , 'booter.define("' + modName + '" , ' + JSON.stringify(depencies)+ ' , function(require ,exports ,module){ \n' + data + ' \n})')
+        cbk(null , 'booter.define("' + modName + '" , ' + JSON.stringify(depencies)+ ' , function(require ,exports ,module){ \n' + data + ' \n});\n')
     }) 
 }
 

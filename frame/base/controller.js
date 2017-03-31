@@ -6,7 +6,6 @@ var callApiLib = require(config.path.base + 'remoteApi.js')
 var querystring = require('querystring') 
 	, path =  require("path")
 	, url =  require("url")
-	, stream = require('stream')
 
 var siteInfo =  config.site
 var eventLib = require(config.path.base + 'evtHandle.js')
@@ -14,6 +13,7 @@ eventLib.prepareData(siteInfo)
 
 var cookieHandle = require(config.path.base + 'cookie.js') 
 var apiShrink = require(config.path.lib + 'api/shrink.js')
+	,EchoStream = require(config.path.lib + 'stream.js').write
 
 var ServerHead = 'hornbill living in ' + config.etc.hostID
 
@@ -28,26 +28,6 @@ var jsDepCache = {}
 var sendToRender
 
 
-function EchoStream (options) { 
-	stream.Writable.call(this)
-	this.options = options || {}
-	if (this.options.extend) {
-		util._extend(this , this.options.extend)
-	}
-	this.string = ''
-}
-util.inherits(EchoStream, stream.Writable)
-
-EchoStream.prototype._write = function (chunk, encoding, done) { 
-	this.string += chunk
-  	done()
-}
-EchoStream.prototype.end = function(chunk){
-	this.string += chunk || ''
-	if (this.options.cbk) {
-		this.options.cbk(this.string)
-	}
-}
 
 function writeRes (req , res , opt , status , body, header , debugStr){		
 	if (res.headersSent){
@@ -279,6 +259,7 @@ function render(tplName , data , callBack){
 			return function(evt){
 				var response = new EchoStream({
 					'extend' : {
+						'setHeader' : function(){},
 						'writeHead' : function(status_code,headers){
 							if (200 != status_code) evt(file + ' not exits')
 						}

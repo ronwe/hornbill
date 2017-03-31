@@ -70,6 +70,7 @@ function wrapExpt(configPath){
 exports.setAbsPath = function (webRoot , options) {
 	var configPath = options.configPath
 		,appsPath = options.appsPath	
+		,staticCompilerPath = options.staticCompilerPath
 	wrapExpt(configPath)
 
 	//exports.etc.onPort
@@ -94,6 +95,11 @@ exports.setAbsPath = function (webRoot , options) {
 	}else {
 		if (cPath.appPath) cPath.appPath = path.resolve(webRoot,cPath.appPath) + path.sep 
 		else cPath.appPath = ''
+	}
+	if (staticCompilerPath){
+		cPath.staticCompiler = staticCompilerPath	
+	}else{
+		cPath.staticCompiler = path.resolve(cPath.lib ,'compiler')
 	}
 	cPath.webRoot = webRoot
 	//console.log(cPath)

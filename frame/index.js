@@ -24,6 +24,7 @@ exports.use = function(connect , opt){
 /*
  * appsPath apps路径
  * configPath 配置文件路径
+ * staticCompilerPath 静态文件compiler路径 
  */
 exports.start = function(options){
 	server.start(options)

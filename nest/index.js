@@ -4,6 +4,7 @@ var hornbill = require('../frame')
 hornbill.start({
 	'appsPath' : path.resolve(__dirname , '../apps') 
 	,'configPath' : path.resolve(__dirname,'config')
+	//,'staticCompilerPath' : path.resolve(__dirname,'compiler')
 })
 
 function x( req, res, next ,val) {
