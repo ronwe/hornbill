@@ -9,9 +9,9 @@ hornbill.start({
     'appsPath' : path.resolve(__dirname , '../apps') //设置应用主目录
     ,'configPath' : path.resolve(__dirname,'config') //设置配置主目录，扩展框架内置配置
 })
+服务配置见 [配置.md]
+默认端口6001 
 
-
-默认端口6001  
 ### 2017.4.1
 静态脚本支持合并输出
 比如 http://127.0.0.1:6001/demo,js/jquery.js
