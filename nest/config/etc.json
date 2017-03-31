@@ -8,7 +8,7 @@
     ,"mobforum" : "index"
 },
 "compiler" : true ,
-"loadDepency" : false,
+"loadDepency" : true,
 "cpuNums":"1",
 "compile" : {
     ".js" : {"compiler" : "combo.js" ,"contentType" : "application/x-javascript"}

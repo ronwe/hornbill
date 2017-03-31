@@ -49,7 +49,7 @@ function loadMod(modPath , modName ,load_stack , _mods_state , _bool_load_depenc
         data = data.toString()
         var depencies = getDepencies(data)  || []    
         rmFrmLoadStack(load_stack,modName)
-
+		console.log('_bool_load_depency' , _bool_load_depency , depencies)
         _bool_load_depency && depencies.forEach(dep_mod => loadMod(modPath, dep_mod,load_stack , _mods_state , _bool_load_depency , cbk))
 
         _mods_state[modName] =  STATUS.LOADED
@@ -59,6 +59,10 @@ function loadMod(modPath , modName ,load_stack , _mods_state , _bool_load_depenc
 }
 
 
+/*
+ * modPath required
+ * mods required
+ * */
 exports.compile = function(opt , cbk){
     if (!opt || !opt.mods ) return cbk('compile nothing')
     /*

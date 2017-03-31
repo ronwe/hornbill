@@ -139,7 +139,9 @@ function handleRoute(request ,response , virtualHostName  , reqUrl){
 				,combined_count_down  = files_count 
 			if (!files_count) return echoError('file name not assign')
 			files.forEach(function(file){
-				file = filterFilePath(file) + suffix
+				file = filterFilePath(file) 
+				if (!file) return combined_count_down--
+				file += suffix
 				var pipe_stream = files_count > 1 ? (new EchoStream({'cbk' : function(content){
 					response.write(content)
 					combined_count_down--
