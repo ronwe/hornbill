@@ -43,6 +43,7 @@
 
 ### 2017.3.21
 启动入口支持中间件注册
+
 	hornbill.use(x , {
 		urlRegTest:'/' ,  //* 对request.url进行正则匹配
 		host: 'demo', //* 对virtual_host 进行匹配
