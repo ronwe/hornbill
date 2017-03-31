@@ -9,7 +9,8 @@ hornbill.start({
     'appsPath' : path.resolve(__dirname , '../apps') //设置应用主目录
     ,'configPath' : path.resolve(__dirname,'config') //设置配置主目录，扩展框架内置配置
 })
-服务配置见 [配置.md]
+
+服务配置见 [配置.md](配置.md)
 默认端口6001 
 
 ### 2017.4.1
