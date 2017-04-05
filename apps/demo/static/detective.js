@@ -810,9 +810,9 @@ function getFlashInfo(done){
 
 		var strVar="";
 		strVar += "<object id=\"myId\" classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" width=\"3\" height=\"1\">";
-		strVar += "                <param name=\"movie\" value=\"test.swf\" \/>";
+		strVar += "                <param name=\"movie\" value=\"/test.swf\" \/>";
 		strVar += "                <!--[if !IE]>-->";
-		strVar += "                <object type=\"application\/x-shockwave-flash\" data=\"test.swf\" width=\"3\" height=\"1\">";
+		strVar += "                <object type=\"application\/x-shockwave-flash\" data=\"/test.swf\" width=\"3\" height=\"1\">";
 		strVar += "                    <!--<![endif]-->";
 		strVar += "                    <div>";
 		strVar += "                        <h1>Alternative content<\/h1>";
@@ -1321,7 +1321,7 @@ function urlEncode(data){
 function upPost(data){
 	//http://dcode.io/protobuf.js/#examples
 	var url_params = urlEncode(data)
-	protobuf.load('data.proto' , function(err , root){
+	protobuf.load('/data.proto' , function(err , root){
 		console.time('a')
 		var Post = root.lookup('cola.Info.Con')
 		var message = Post.create(data)
