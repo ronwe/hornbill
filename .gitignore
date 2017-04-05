@@ -4,3 +4,4 @@
 nest/server/config/pids
 *.DS_store
 .gitignore
+*/node_modules/*

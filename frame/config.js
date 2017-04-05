@@ -78,7 +78,7 @@ exports.setAbsPath = function (webRoot , options) {
 	
 	for (var p in cPath){
 		cPath[p] = cPath[p].replace(/\//g, path.sep)
-		if ('appPath' == p || 'views' == p || 'model' == p || 'controller' == p){
+		if (['appPath' ,'mock' ,'static' , 'views' , 'model' , 'controller'].indexOf(p) !== -1 ){
 			continue
 		}
 		if (p != 'webRoot' && cPath[p][0] != path.sep) {

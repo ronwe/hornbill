@@ -15,7 +15,17 @@ var controlFns = {
 		this.render('detect.html' , {})
 	},
 	'A' :function() {
-		this.render('call.html' , {})
+		var java = {
+			'demo': '/hello'
+		}
+		this.bridgeMocks({
+			'demo' : '/demo/hello.js'
+		})
+		this.bridgeMuch(java)
+		this.listenOver(function(data){
+			return this.res.end(JSON.stringify(data))
+			this.render('call.html' , {})
+		})
 	},
     'demo' : function(){
 

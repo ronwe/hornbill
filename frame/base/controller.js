@@ -6,6 +6,7 @@ var callApiLib = require(config.path.base + 'remoteApi.js')
 var querystring = require('querystring') 
 	, path =  require("path")
 	, url =  require("url")
+	, fs =  require("fs")
 
 var siteInfo =  config.site
 var eventLib = require(config.path.base + 'evtHandle.js')
@@ -28,6 +29,51 @@ var jsDepCache = {}
 var sendToRender
 
 
+//模拟数据 在controller里 调用bridgeMocks注册
+function mockApi(mock_uri , opt){
+	opt = opt || {}
+	var req = opt.req
+
+	var api_path = path.join(config.path.appPath , opt.host , config.path.mock || 'mock'  , mock_uri) 
+		
+	return function(evt,passData){
+		//api(evt , passData||data)
+		fs.stat(api_path , function(err ,stat){
+			if (err) return evt(false)
+			var api_result = require(api_path)(req)
+			
+		
+			var res_state = api_result.status
+
+			var remoteUri = 'mock::' + mock_uri
+			if  (200 != res_state && 400 != res_state && 4000 > res_state) { 
+				base.errorLog('error' , 'api' , remoteUri , 'STATUS: ' , res_state )
+				return evt(false) 
+			}
+			if (api_result.delay >= config.api.timeout) {
+				base.errorLog('error' , 'api' , remoteUri , 'Request Timeout' )
+				setTimeout(function(){
+					evt(false) 
+				} , config.api.timeout)
+				return 
+			}
+			/*
+			* response
+			* delay 
+			* status 
+			* code
+			* error {message}
+			*/
+			
+			var api_res=  {'code' : api_result.code , 'data' : api_result.code ?api_result.error.message : api_result.response}
+			
+			setTimeout(function(){
+				evt(api_res)
+			} , api_result.delay || 0 )
+		})
+	}
+
+}
 
 function writeRes (req , res , opt , status , body, header , debugStr){		
 	if (res.headersSent){
@@ -102,10 +148,20 @@ Controller.prototype = {
 	},
     getApi : function(remoteUri,reqAct , method ,rawData){
         return callApiLib.__create(this.req , this.res ,this.notify)(remoteUri , method || this.req.method , reqAct ,rawData); 
-        },
+    },
+	bridgeMocks : function(php){
+		//判断config开关
+		if (config.etc.mockOff) return false	
+		this.mock_api = php	
+	},
 	bridgeMuch : function(php){
+		var mock_api = this.mock_api || {}
 		for (var k in php){
-			var phpClient = this.bridge( php[k])
+			if (mock_api[k]) {
+				var phpClient = mockApi( mock_api[k] , {'req' :  this.req , 'host' : this.opt.hostPath })
+			}else{
+				var phpClient = this.bridge( php[k])
+			}
 			this.listenOn(phpClient , k)()
 		}
 		this.req.dataSource = php
