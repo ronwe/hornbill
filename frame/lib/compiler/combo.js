@@ -39,7 +39,7 @@ function rmFrmLoadStack(stack , mod){
     if (i !== -1) stack.splice(i,1)
 }
 
-function loadMod(modPath , modName ,load_stack , _mods_state , _bool_load_depency ,cbk ){
+function loadMod(modPath , modName ,load_stack , _mods_state , _bool_load_depency ,traverser ,cbk ){
     if (_mods_state[modName]) return
     putInLoadStack(load_stack , modName)
     _mods_state[modName] =  STATUS.LOADING
@@ -47,14 +47,19 @@ function loadMod(modPath , modName ,load_stack , _mods_state , _bool_load_depenc
     fs.readFile(mod_full_path, (err , data) => {
         if (err) data = '/*' + err.toString() + '*/'
         data = data.toString()
+
+
         var depencies = getDepencies(data)  || []    
         rmFrmLoadStack(load_stack,modName)
-		console.log('_bool_load_depency' , _bool_load_depency , depencies)
-        _bool_load_depency && depencies.forEach(dep_mod => loadMod(modPath, dep_mod,load_stack , _mods_state , _bool_load_depency , cbk))
+        _bool_load_depency && depencies.forEach(dep_mod => loadMod(modPath, dep_mod,load_stack , _mods_state , _bool_load_depency , traverser ,cbk))
 
         _mods_state[modName] =  STATUS.LOADED
 
-        cbk(null , 'booter.define("' + modName + '" , ' + JSON.stringify(depencies)+ ' , function(require ,exports ,module){ \n' + data + ' \n});\n')
+		var script_code = 'booter.define("' + modName + '" , ' + JSON.stringify(depencies)+ ' , function(require ,exports ,module){ \n' + data + ' \n});\n'
+
+		if (traverser) script_code = traverser(script_code)
+
+        cbk(null , script_code)
     }) 
 }
 
@@ -62,6 +67,7 @@ function loadMod(modPath , modName ,load_stack , _mods_state , _bool_load_depenc
 /*
  * modPath required
  * mods required
+ * loadDepency 是否加载依赖
  * */
 exports.compile = function(opt , cbk){
     if (!opt || !opt.mods ) return cbk('compile nothing')
@@ -82,5 +88,15 @@ exports.compile = function(opt , cbk){
         }
     }
 
-    mods.forEach( _m => loadMod(modPath , _m.replace(/\.{2,}/g, '')  , load_stack , _mods_state , LoadDepency,  assemble ))
+	var _load_depency = opt.loadDepency || LoadDepency
+		,traverser = opt.traverser
+
+    mods.forEach( _m => loadMod(
+				modPath 
+				, _m.replace(/\.{2,}/g, '')  
+				, load_stack 
+				, _mods_state 
+				, _load_depency
+				, traverser
+				, assemble ))
 }

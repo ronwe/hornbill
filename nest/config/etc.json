@@ -8,11 +8,11 @@
     ,"mobforum" : "index"
 },
 "compiler" : true ,
-"loadDepency" : true,
+"loadDepency" : false,
 "cpuNums":"1",
 "compile" : {
     ".js" : {"compiler" : "combo.js" ,"contentType" : "application/x-javascript"}
-    ,".css" : {"contentType" : "text/css" }
+    ,".css" : {"compiler" : "scss.js" ,"contentType" : "text/css" }
     ,".svg" : {"contentType" : "image/svg+xml" }
 },
 "onPort":6001}

@@ -96,11 +96,8 @@ exports.setAbsPath = function (webRoot , options) {
 		if (cPath.appPath) cPath.appPath = path.resolve(webRoot,cPath.appPath) + path.sep 
 		else cPath.appPath = ''
 	}
-	if (staticCompilerPath){
-		cPath.staticCompiler = staticCompilerPath	
-	}else{
-		cPath.staticCompiler = path.resolve(cPath.lib ,'compiler')
-	}
+	cPath.staticBaseCompiler = path.resolve(cPath.lib ,'compiler' , 'index.js')
+	cPath.staticCompiler = staticCompilerPath || path.resolve(cPath.lib ,'compiler')
 	cPath.webRoot = webRoot
 	//console.log(cPath)
 }
