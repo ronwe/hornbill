@@ -8,7 +8,7 @@
     ,"mobforum" : "index"
 },
 "compiler" : true ,
-"mockOff" : true,
+"mockOff" : false,
 "loadDepency" : false,
 "cpuNums":"1",
 "compile" : {

@@ -40,10 +40,18 @@ function mockApi(mock_uri , opt){
 		//api(evt , passData||data)
 		fs.stat(api_path , function(err ,stat){
 			if (err) return evt(false)
-			var api_result = require(api_path)(req)
+			var api = require(api_path)
+			if ('function' === typeof api){		
+				var api_result = api(req)
+			}else {
+				var api_result = api
+			}
+			if (!api_result.response){
+				api_result = {'response' : api_result}
+			} 
 			
 		
-			var res_state = api_result.status
+			var res_state = api_result.status || 200
 
 			var remoteUri = 'mock::' + mock_uri
 			if  (200 != res_state && 400 != res_state && 4000 > res_state) { 
@@ -65,7 +73,7 @@ function mockApi(mock_uri , opt){
 			* error {message}
 			*/
 			
-			var api_res=  {'code' : api_result.code , 'data' : api_result.code ?api_result.error.message : api_result.response}
+			var api_res=  {'code' : api_result.code || 0 , 'data' : api_result.code ?api_result.error.message : api_result.response}
 			
 			setTimeout(function(){
 				evt(api_res)
