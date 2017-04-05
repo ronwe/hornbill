@@ -22,6 +22,8 @@ nest下增加sass编译器
 	this.bridgeMocks({
 		'demo' : '/demo/hello.js'
 	})
+mock数据文件放在项目mock文件夹下，如果为js文件则应返回函数
+
 默认打开，通过配置文件中etc.json的mockOff关闭（线上应将mockOff设为true）
 ### 2017.4.1
 静态脚本支持合并输出
