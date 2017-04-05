@@ -16,7 +16,13 @@
 
 ### 2017.4.5
 nest下增加sass编译器 
+支持controller mock假数据
+使用方法：在bridgeMuch前注册
 
+	this.bridgeMocks({
+		'demo' : '/demo/hello.js'
+	})
+默认打开，通过配置文件中etc.json的mockOff关闭（线上应将mockOff设为true）
 ### 2017.4.1
 静态脚本支持合并输出
 比如 http://127.0.0.1:6001/demo,js/jquery.js
