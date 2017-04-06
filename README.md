@@ -13,7 +13,14 @@
 
 服务配置见 [配置.md](配置.md)
 默认端口6001 
-
+### 2017.4.6 
+增加cluster多进程启动方式
+	
+	hornbill.cluster({
+		'appsPath' : path.resolve(__dirname , '../apps') //设置应用主目录
+		,'configPath' : path.resolve(__dirname,'config') //设置配置主目录，扩展框架内置配置
+	},启动进程数，默认为cpu数量)
+	
 ### 2017.4.5
 nest下增加sass编译器 
 支持controller mock假数据
