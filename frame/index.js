@@ -26,7 +26,7 @@ exports.use = function(connect , opt){
  * configPath 配置文件路径
  * staticCompilerPath 静态文件compiler路径 
  */
-exports.start = function(options){
+function startService(options){
 	server.start(options)
 	/*
 	options = options || {}
@@ -53,6 +53,25 @@ exports.start = function(options){
 process.on('uncaughtException', function (err) {
     console.log(err)
 })
+
+exports.start = startService 
+
+exports.cluster = function(options , child_process_count){
+	child_process_count  = child_process_count | 0 || require('os').cpus().length
+	if (child_process_count <= 0 ) return startService(options) 
+	if (cluster.isMaster) {
+		for (var i = 0; i<child_process_count ; i++) {
+			cluster.fork()
+		}
+	 
+		cluster.on('exit', function(worker, code, signal) {
+			console.log('worker ' + worker.process.pid + ' died')
+		})
+	} else {
+		startService(options)
+	}
+
+}
 
 
 

@@ -1,11 +1,11 @@
 var hornbill = require('../frame')
 	,path = require('path')
 
-hornbill.start({
+hornbill.cluster({
 	'appsPath' : path.resolve(__dirname , '../apps') 
 	,'configPath' : path.resolve(__dirname,'config')
 	,'staticCompilerPath' : path.resolve(__dirname,'compiler')
-})
+},2)
 
 function x( req, res, next ,val) {
 
