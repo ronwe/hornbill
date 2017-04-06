@@ -65,7 +65,9 @@ function processStack(middleware , request ,response , virtualHostName , init_va
 		if (connect && connect.host && virtualHostName !== connect.host) return callNextConnect() 
 		if (connect && connect.urlRegTest  ){
 			if (typeof connect.urlRegTest.test === 'function') {
-				if (!connect.urlRegTest.test(request.url)) return callNextConnect()
+				var url_test = connect.urlRegTest.test(request.url)
+				connect.urlRegTest.lastIndex = 0
+				if (!url_test) return callNextConnect()
 			}else if ('string' === typeof connect.urlRegTest) {
 				if (request.url.indexOf(connect.urlRegTest) !== 0  ) return callNextConnect()
 			}
