@@ -39,7 +39,6 @@ function mockApi(mock_uri , opt){
 		
 	return function(evt,passData){
 		//api(evt , passData||data)
-		console.log(api_path)
 		fs.stat(api_path , function(err ,stat){
 			if (err) {
 				if (auto && bridge) {
