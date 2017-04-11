@@ -17,4 +17,4 @@
 
 ------
 
-其它解决方案 [mid] (https://github.com/xudeming208/mid)
+其它解决方案 [mid](https://github.com/xudeming208/mid)
