@@ -33,20 +33,43 @@ var sendToRender
 function mockApi(mock_uri , opt){
 	opt = opt || {}
 	var req = opt.req
-
+		,auto = opt.auto
+		,bridge = opt.bridge
 	var api_path = path.join(config.path.appPath , opt.host , config.path.mock || 'mock'  , mock_uri) 
 		
 	return function(evt,passData){
 		//api(evt , passData||data)
 		fs.stat(api_path , function(err ,stat){
-			if (err) return evt(false)
+			if (err) {
+				if (auto && bridge) {
+					//模拟数据不存在的时候自动生成
+					var api_time = new Date
+					bridge(function(api_data){
+						evt(api_data)
+						try{
+							require('child_process').execSync('mkdir -p ' + api_path)
+							fs.writeFile(api_path,JSON.stringify({
+								"response" : api_data,
+								"delay": new Date - api_time,
+								"status": false === api_data ? 400 : 200,
+							}))
+						}catch(err){
+							base.errorLog('error' , 'mock' , api_path  )
+									
+						}
+					})
+					return	
+				}else {
+					return evt(false)
+				}
+			}
 			var api = require(api_path)
 			if ('function' === typeof api){		
 				var api_result = api(req)
 			}else {
 				var api_result = api
 			}
-			if (!api_result.response){
+			if (!('response' in api_result)){
 				api_result = {'response' : api_result}
 			} 
 			
@@ -162,11 +185,21 @@ Controller.prototype = {
 		if (config.etc.mockOff) return false	
 		this.mock_api = php	
 	},
+	autoGenMock : function(auto){
+		if (config.etc.mockOff) return false	
+		this.mock_api_auto = !!auto
+		
+	},
 	bridgeMuch : function(php){
-		var mock_api = this.mock_api || {}
+		var mock_api = config.etc.mockOff ? {} : this.mock_api || {}
+			,mock_api_auto = this.mock_api_auto 
 		for (var k in php){
 			if (mock_api[k]) {
-				var phpClient = mockApi( mock_api[k] , {'req' :  this.req , 'host' : this.opt.hostPath })
+				var phpClient = mockApi( mock_api[k] , {
+					'auto': mock_api_auto,
+					'bridge' : this.bridge( php[k]),
+					'req' :  this.req , 
+					'host' : this.opt.hostPath })
 			}else{
 				var phpClient = this.bridge( php[k])
 			}
