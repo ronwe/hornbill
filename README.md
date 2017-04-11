@@ -10,9 +10,10 @@
 		'appsPath' : path.resolve(__dirname , '../apps') //设置应用主目录
 		,'configPath' : path.resolve(__dirname,'config') //设置配置主目录，扩展框架内置配置
 	})
-
-更多服务配置和更新记录见 [wiki](https://github.com/ronwe/hornbill/wiki)
+	
 默认端口6001 
+更多服务配置和更新记录见 [wiki](https://github.com/ronwe/hornbill/wiki)
+
 
 
 ------
