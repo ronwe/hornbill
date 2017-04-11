@@ -33,15 +33,17 @@ function create(req ,res , notify ,lib_opt) {
 				var splitor = "\n--->\n"
 				var errLogTxt = splitor + new Date()
 				+ splitor + 'url:'+ req.url
+				+ splitor + 'apiUrl:' + remoteUri 
 				+ splitor + 'Data Source: ' + hostSource +  ' is not configed' + "\n<---\n"
-				base.errorLog('Data Source: ' + hostSource +  ' is not configed')			
-				base.dataErrLog(errLogTxt)			
 				host = config.api.host	
 			}
 		}
 		var _origin_remoteUri = remoteUri
 
         return function(evt , data ) {
+			if (errLogTxt){
+				base.dataErrLog(errLogTxt)			
+			}
 			if (!host)   return evt ? evt(false) : {};
 			var remoteUri = _origin_remoteUri
 
