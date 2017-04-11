@@ -13,3 +13,8 @@
 
 更懂服务配置和更新记录见 [wiki](https://github.com/ronwe/hornbill/wiki)
 默认端口6001 
+
+
+------
+
+其它解决方案 [mid] (https://github.com/xudeming208/mid)
