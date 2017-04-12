@@ -1,15 +1,19 @@
 var path = require('path')
 	,fs = require('fs')
 	,querystring = require('querystring')
+	,extend = require('util')._extend
 
 
 //用nest下的config 覆盖frame下的config 如果有的话
 var cPath
-function wrapExpt(configPath){
+function wrapExpt(configPath ,extConfig){
+	if (!configPath) configPath = path.resolve(__dirname , 'config')
+	extConfig = extConfig || {}
 	function requirePathAbs(ini_file){
 		var p1 = configPath && path.resolve(configPath ,ini_file)
 			,p2= path.resolve(__dirname , 'config' , ini_file)
-		var ini_file_path = (p1 && fs.existsSync(p1)) ? p1 : p2
+		var ini_file_path = (p1 && fs.existsSync(p1)) ? p1 : (fs.existsSync(p2) ? p2 : null)
+		if (!ini_file_path) return false 
 		return require(ini_file_path)
 	} 	
 
@@ -24,54 +28,31 @@ function wrapExpt(configPath){
 	exports.etc = requirePathAbs('etc.json') 
 	exports.api = requirePathAbs('api.json')
 
-	var db = {
-		mysql : null,
-		mongo : null
-	}
 
-	if (fs.existsSync('./config/dbini.json')) {
-		var dbini  = require ('./config/dbini.json')
-		if (dbini.mysql) {
-			var ini = dbini.mysql.trim().split("\n")	
-			var mysql = {
-				master : []
-				,slave : []
-			}
-			ini.forEach(function(set){
-				set = set.trim()
-				if ('#' == set[0]) return
-				set = querystring.parse(set, ' ')
-				if (dbini.mysqlbase && dbini.mysqlbase != set.db) return
-
-				set.password = set.pass
-				set.database = set.db
-				
-				if (1 == set.master) mysql.master.push(set)
-				else mysql.slave.push(set)
-
-			})
-
-			db.mysql = {
-				master : getSet.bind(null , mysql.master) 
-				,slave : getSet.bind(null , mysql.slave || mysql.master) 
-			}
-			function getSet(sets){
-				if (1 == sets.length) return sets[0]
-				return sets[Math.floor(Math.random() * sets.length)]
-			}
-		}
-	}
-
-	exports.db = db
+	exports.db = requirePathAbs('database.json') 
 	exports.virtualHost = requirePathAbs('virtual_host.json') 
 
+	function extendFromOpt(){
+		/*
+		var _clone_ext = extend({} , extConfig)
+		;['appsPath','configPath' ,'staticCompilerPath'].forEach(function(key){
+			delete _clone_ext[key]
+		})
+		*/
+		var _clone_ext = extConfig
+		;['session' , 'site','etc' , 'api' ,'db' , 'virtualHost'].forEach(function(key){
+			if (!extConfig[key]) return
+			extend(exports[key] , _clone_ext[key])
+		})
+	}
+	extendFromOpt()
 }
 
 exports.setAbsPath = function (webRoot , options) {
 	var configPath = options.configPath
 		,appsPath = options.appsPath	
 		,staticCompilerPath = options.staticCompilerPath
-	wrapExpt(configPath)
+	wrapExpt(configPath , options)
 
 	//exports.etc.onPort
 	webRoot += path.sep

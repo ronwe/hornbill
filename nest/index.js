@@ -16,8 +16,14 @@ function x( req, res, next ,val) {
 * after app处理后 
 */
 hornbill.use(x , {urlRegTest:/^\/$/g,host:'demo' , after: false})
+/*
 hornbill.cluster({
 	'appsPath' : path.resolve(__dirname , '../apps') 
 	,'configPath' : path.resolve(__dirname,'config')
 	,'staticCompilerPath' : path.resolve(__dirname,'compiler')
 },4)
+*/
+hornbill.start({
+	'appsPath' : path.resolve(__dirname , '../apps'),
+	'etc' : {'hostDefault' : {"abc.com" : "welcome"}},
+})

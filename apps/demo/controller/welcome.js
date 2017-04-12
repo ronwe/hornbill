@@ -18,12 +18,16 @@ var controlFns = {
 		var java = {
 			'demo': '/hello'
 		}
+		this.autoGenMock(true)
 		this.bridgeMocks({
-			'demo' : '/demo/hello.js'
+			'demo' : '/demo/hello.json'
 		})
 		this.bridgeMuch(java)
 		this.listenOver(function(data){
-			return this.res.end(JSON.stringify(data))
+			data.get = this.req.__get
+			data.post = this.req.__post
+			console.log(this.req.__post)
+			return this.res.end(JSON.stringify(config,null,4))
 			this.render('call.html' , {})
 		})
 	},

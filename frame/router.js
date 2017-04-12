@@ -25,11 +25,8 @@ function registConnect(connect , opt){
 }
 
 function setGlobal(options){
-	config.setAbsPath( __dirname , {
-		'configPath' : options.configPath 
-		,'appsPath' : options.appsPath 
-		,'staticCompilerPath' : options.staticCompilerPath
-	})
+	config.setAbsPath( __dirname , options)
+
 	global.config = config
 	global.base = require(config.path.base + 'base.js')
 	global.controller = require(config.path.base + 'controller.js')
@@ -335,7 +332,12 @@ function exeAppScript(hostPath ,virtualHostName , request , response , mod , fn 
 				if (data.length > 1e6) request.connection.destroy()
 			})
 			.addListener('end' ,function(){
-				data = querystring.parse(data)
+				if (request.headers && request.headers.accept && request.headers.accept.indexOf('application/json') >=0 && data.slice(0,1) === '{') {
+					//json api
+					data = JSON.parse(data)
+				}else{
+					data = querystring.parse(data)
+				}
 
 				request.__post = data
 				toExe()

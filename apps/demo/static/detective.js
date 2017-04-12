@@ -1300,6 +1300,7 @@ main(function(result){
 	
 	var arr = []
 	for(var k in result){
+		if (UNKOWNKEY === result[k]) continue
 		arr.push('<tr><td>' + k + '</td><td>' + result[k] +'</td></tr>' )//+ '     ' + result[k])
 
 	}
@@ -1318,9 +1319,72 @@ function urlEncode(data){
 	}
 	return ret.join('&')
 }
+
+// LZW-compress a string
+function lzw_encode(s) {
+    var dict = {};
+    var data = (s + "").split("");
+    var out = [];
+    var currChar;
+    var phrase = data[0];
+    var code = 256;
+    for (var i=1; i<data.length; i++) {
+        currChar=data[i];
+        if (dict[phrase + currChar] != null) {
+            phrase += currChar;
+        }
+        else {
+            out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
+            dict[phrase + currChar] = code;
+            code++;
+            phrase=currChar;
+        }
+    }
+    out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
+    for (var i=0; i<out.length; i++) {
+        out[i] = String.fromCharCode(out[i]);
+    }
+    return out.join("");
+}
+
+// Decompress an LZW-encoded string
+function lzw_decode(s) {
+    var dict = {};
+    var data = (s + "").split("");
+    var currChar = data[0];
+    var oldPhrase = currChar;
+    var out = [currChar];
+    var code = 256;
+    var phrase;
+    for (var i=1; i<data.length; i++) {
+        var currCode = data[i].charCodeAt(0);
+        if (currCode < 256) {
+            phrase = data[i];
+        }
+        else {
+           phrase = dict[currCode] ? dict[currCode] : (oldPhrase + currChar);
+        }
+        out.push(phrase);
+        currChar = phrase.charAt(0);
+        dict[code] = oldPhrase + currChar;
+        code++;
+        oldPhrase = phrase;
+    }
+    return out.join("");
+}
+
 function upPost(data){
 	//http://dcode.io/protobuf.js/#examples
 	var url_params = urlEncode(data)
+	var new_ret = {}
+	for (var k in data){
+		if (UNKOWNKEY !== data[k]) {
+			new_ret[k] = data[k]
+			if ( typeof new_ret[k] === 'number') new_ret[k] = new_ret[k].toString() 
+		}
+
+	}
+	data = new_ret
 	protobuf.load('/data.proto' , function(err , root){
 		console.time('a')
 		var Post = root.lookup('cola.Info.Con')
@@ -1328,6 +1392,9 @@ function upPost(data){
 		var buffer = Post.encode(message).finish()
 		console.timeEnd('a')
 		console.log(buffer.byteLength , JSON.stringify(data).length , url_params.length)
+		console.time('b')
+		console.log(lzw_encode(url_params).length)
+		console.timeEnd('b')
 	})
 }
 

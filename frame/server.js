@@ -40,6 +40,7 @@ function tryWatching(){
 	}
 }
 exports.start = function(options){
+	options = options || {}
 	router.setGlobal(options)
 	tryWatching()
 	start(router.route , config.etc.onPort || 8888)
