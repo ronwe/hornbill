@@ -25,5 +25,5 @@ hornbill.cluster({
 */
 hornbill.start({
 	'appsPath' : path.resolve(__dirname , '../apps'),
-	'etc' : {'hostDefault' : {"abc.com" : "welcome"}},
+	'etc' : {'loadDepency' : true},
 })

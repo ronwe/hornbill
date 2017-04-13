@@ -182,7 +182,7 @@ function getNavigatorInfo(done){
 
 		browserVerdor : navigator.vendor,
 		browserKernel : navigator.appName,
-		userAgent : navigator.userAgent,
+		//userAgent : navigator.userAgent,
 		
 		acceptEncoding :  document.characterSet || document.charset,
 			
@@ -392,21 +392,22 @@ function getNavInfo(done){
 		var mimeTypes = []
 		for (var i = 0 ; i< navigator.mimeTypes.length; i++){
 			var mime_type = navigator.mimeTypes[i]
-			mimeTypes.push('type:' +  mime_type.type +  ',Description:' + mime_type.description + ';')
+			mimeTypes.push( mime_type.type )
 		}
-		mimeTypes = mimeTypes.join('\n') 
+		mimeTypes = mimeTypes.join(',') 
 	}
 	if (navigator.plugins){
 		var plugins = []
 		for (var i = 0 ; i < navigator.plugins.length; i++){
 			var plug = navigator.plugins[i]
-			plugins.push('fileName:' + plug.filename + 
+			plugins.push(plug.name + '@' + plug.version)
+					/*'fileName:' + plug.filename + 
 				',pluginName:' +  plug.name + 
 				',Description:描述' + plug.description +
 				', Version:' + plug.version +
-				';')
+				';'*/
 		}
-		plugins = plugins.join('\n')
+		plugins = plugins.join(',')
 	}
 	done({
 		Connection : navigator.onLine || UNKOWNKEY,
@@ -1298,10 +1299,18 @@ main(function(result){
 		docCookies.setItem(GuidKey , guid , Infinity)
 	}
 	
+	var new_ret = {}
 	var arr = []
+	
 	for(var k in result){
 		if (UNKOWNKEY === result[k]) continue
-		arr.push('<tr><td>' + k + '</td><td>' + result[k] +'</td></tr>' )//+ '     ' + result[k])
+		if (result[k] === void(0)) continue		
+		if ( typeof result[k] === 'boolean') result[k] = result[k]? 1:0 
+		if ( typeof result[k] !== 'string') result[k] = result[k].toString() 
+
+		new_ret[k] = result[k]
+		var len =  result[k].length + k.length 
+		arr.push('<tr><td>' + k + '</td><td>'+ len +' </td><td>' + result[k] +'</td></tr>' )//+ '     ' + result[k])
 
 	}
 	upPost(result)

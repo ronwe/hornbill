@@ -172,11 +172,10 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
   function trsTpl(err, data) {
 
     if(!data) return;
-    //// function html_encode(str){return str.replace(/&/, '&amp;').replace(/</g, '&lt;').replace(/\"/g, '&quot;').replace(/'/g, '&#039;'); } ;\n \
     var comFileCon = "/*--" + tplname + "--*/ \n \
     var est = require( '"+ winPath(est_path) +"'); \n \
     var _extFn = require('" + winPath(extFnPath) + "'); \n \
-    function requireFn(tpl) { return est.renderFile('" + winPath(tplpath) + "' ,tpl , null , null ,'" + tplPre + "' ,true); } ; \n \
+    function RequireTpl(tpl) { return est.renderFile('" + winPath(tplpath) + "' ,tpl , null , null ,'" + tplPre + "' ,true); } ; \n \
     function __getHtml () { \n \
 		var __StaticModel = this.__StaticModel = this.__StaticModel || {}; \n \
 		var IncludeStatic = function ( staticMod, type) { \n \
@@ -189,7 +188,9 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 				if (static.indexOf(model) === -1) static.push(model) \n \
 			} else {return static} }; \n \
 		function OutputWrite(str){__htm += str.toString()}; \n \
+		function InsertTpl(tpl,id , trans){OutputWrite(_extFn.insertTpl4JS('" + winPath(tplpath) + "' ,tpl,id,trans)) }; \n \
       var __htm ='';\n";
+
     var funcCon;
     var pos = 0,
 		posStart = 0,
@@ -241,7 +242,7 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 					}
 					break
 				case '#':
-					fillCmpl( '__htm += requireFn("' + funcCon.substr(1).trim() + '" )(this)||"";\n' , true)
+					fillCmpl( '__htm += RequireTpl("' + funcCon.substr(1).trim() + '" )(this)||"";\n' , true)
 					break
 				case '!':
 					fillCmpl( '__htm += _extFn.remoteInclude.call(this , {url:"' + funcCon.substr(1).trim() +  ' "});\n' , true)

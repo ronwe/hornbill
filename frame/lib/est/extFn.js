@@ -19,9 +19,27 @@ plugins.forEach(function(plug){
 })
 exports.plugin = _plug
 
+exports.insertTpl4JS = function(tpl_root , tpl_name ,  jsid, trans_mark ){
+	var tpl_path = path.resolve(tpl_root,tpl_name)
+	var tpl_body
+	if (false !== trans_mark) trans_mark = true
+	try{
+		tpl_body = fs.readFileSync(tpl_path).toString() 
+	}catch(err){
+		tpl_body = `/*tpl ${tpl_name} not found*/`	
+		trans_mark = false
+	}
+	if (trans_mark && tpl_body){
+		tpl_body = tpl_body.replace(/<\%/g,'<?').replace(/\%>/g,'?>')
+	}
+
+	return `<script type="text/templage" id="${jsid}">${tpl_body}</script>`
+}
 exports.htmlEncode = function(str){
-	str = str || "";
-	return str.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#039;')
+	if (typeof str != 'string'){
+		str = str + ""	
+	}
+	return str.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#039;')
 }
 
 exports.urlEncode = function(str){
