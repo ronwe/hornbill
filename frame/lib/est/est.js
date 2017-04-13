@@ -183,10 +183,10 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 		}.bind(this); \n \
 		function StaticModel(type, model){ \n \
 			if (!type) return \n \
-			var static = __StaticModel[type];if(!static) static = __StaticModel[type] = []; \n\
+			var _static = __StaticModel[type];if(!_static) _static = __StaticModel[type] = []; \n\
 			if (model) { \n \
-				if (static.indexOf(model) === -1) static.push(model) \n \
-			} else {return static} }; \n \
+				if (_static.indexOf(model) === -1) _static.push(model) \n \
+			} else {return _static} }; \n \
 		function OutputWrite(str){__htm += str.toString()}; \n \
 		function InsertTpl(tpl,id , trans){OutputWrite(_extFn.insertTpl4JS('" + winPath(tplpath) + "' ,tpl,id,trans)) }; \n \
       var __htm ='';\n";
