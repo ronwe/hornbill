@@ -332,12 +332,14 @@ function exeAppScript(hostPath ,virtualHostName , request , response , mod , fn 
 				if (data.length > 1e6) request.connection.destroy()
 			})
 			.addListener('end' ,function(){
+				request.__raw_post = data
 				if (request.headers && request.headers.accept && request.headers.accept.indexOf('application/json') >=0 && data.slice(0,1) === '{') {
 					//json api
 					data = JSON.parse(data)
 				}else{
 					data = querystring.parse(data)
 				}
+
 
 				request.__post = data
 				toExe()

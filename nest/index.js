@@ -15,7 +15,7 @@ function x( req, res, next ,val) {
 * host 域
 * after app处理后 
 */
-hornbill.use(x , {urlRegTest:/^\/$/g,host:'demo' , after: false})
+//hornbill.use(x , {urlRegTest:/\.js$/g,host:'fx' , after: true})
 /*
 hornbill.cluster({
 	'appsPath' : path.resolve(__dirname , '../apps') 
@@ -24,6 +24,8 @@ hornbill.cluster({
 },4)
 */
 hornbill.start({
-	'appsPath' : path.resolve(__dirname , '../apps'),
-	'etc' : {'loadDepency' : true},
+	'appsPath' : path.resolve(__dirname , '../apps')
+	,'configPath' : path.resolve(__dirname,'config')
+	,'staticCompilerPath' : path.resolve(__dirname,'compiler')
+	,'etc' : {'loadDepency' : true},
 })

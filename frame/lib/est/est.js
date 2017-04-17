@@ -8,7 +8,7 @@ var compiledFolder = '',
 var htmlend = '\\n',
 	fuss = false;
 const SEP = path.sep
-var extFnPath = __dirname + SEP + 'extFn.js';
+var extFnPath = path.resolve(__dirname , 'extFn.js')
 
 function watchTpl(tplname , compiledFile) {
   //var dir = path.dirname(tplname);
@@ -208,6 +208,11 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 		pos = findTag(data, pos, 60, 37)
 		if(pos > -1) {
 			posEnd = findTag(data, pos + 2, 37, 62)
+			if (-1 == posEnd){
+				console.error(tplname + '模版标记未闭合')
+				fillCmpl('<h1>模版标记未闭合</h1>')
+				break
+			}
 		} else {
 			fillCmpl(buffer2String(data, posStart, bufferLen)) 
 			break

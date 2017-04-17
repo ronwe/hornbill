@@ -261,7 +261,7 @@ function getSupportInfo(done){
 		localStorage :  size_localStorage,
 		sessionStorage : size_sessionStorage,
 		alterBrowser : getHasLiedBrowser(),
-		browserLanguage : navigator.language	,
+		//browserLanguage : navigator.language	,
 		supportJS : true,
 		canvasFingerPrint : isCanvasSupported(), 
 		html5 : isAttributeSupported("input", "placeholder"),
@@ -394,36 +394,38 @@ function getNavInfo(done){
 			var mime_type = navigator.mimeTypes[i]
 			mimeTypes.push( mime_type.type )
 		}
-		mimeTypes = mimeTypes.join(',') 
+		mimeTypes = mimeTypes
 	}
 	if (navigator.plugins){
 		var plugins = []
 		for (var i = 0 ; i < navigator.plugins.length; i++){
 			var plug = navigator.plugins[i]
-			plugins.push(plug.name + '@' + plug.version)
+			plugins.push(plug.name)
 					/*'fileName:' + plug.filename + 
 				',pluginName:' +  plug.name + 
 				',Description:描述' + plug.description +
 				', Version:' + plug.version +
 				';'*/
 		}
-		plugins = plugins.join(',')
+		plugins = plugins
 	}
+	var doNotTrack = navigator.doNotTrack
+	doNotTrack = ('1' === doNotTrack) ? '1' :( '0' === doNotTrack ? '0': '2') 
 	done({
 		Connection : navigator.onLine || UNKOWNKEY,
 		historyLength : history.length , 
 		numMimeTypes : navigator.mimeTypes ? navigator.mimeTypes.length : UNKOWNKEY,
 		mimeTypes : mimeTypes || UNKOWNKEY,
-		useragent : navigator.userAgent,
+		//useragent : navigator.userAgent,
 		plugins : plugins || UNKOWNKEY,
-		language :  navigator.language  || UNKOWNKEY,
+		//language :  navigator.language  || UNKOWNKEY,
 		vendor : navigator.vendor || UNKOWNKEY,
 		appVersion : navigator.appVersion || UNKOWNKEY,
 		numCPU : navigator.hardwareConcurrency || UNKOWNKEY,
 		appName : navigator.appName || UNKOWNKEY,
 		appCodeName : navigator.appCodeName || UNKOWNKEY,
 		cookieEnabled : navigator.cookieEnabled	,
-		doNotTrack : !!navigator.doNotTrack,
+		doNotTrack : doNotTrack,
 		cpuClass : navigator.cpuClass || UNKOWNKEY,
 		platform : navigator.platform ,
 		product : navigator.product,
@@ -546,7 +548,7 @@ function getWebGLInfo(done){
 			maxVertexUniformVectors : detail.maxVertexUniformVectors,
 			aliasedLineWidthRange :  serialize(detail.aliasedLineWidthRange),
 			aliasedPointSizeRange : serialize(detail.aliasedPointSizeRange) , 
-			maxViewportDimensions: detail.maxViewportDimensions.join(',') ,
+			maxViewportDimensions: detail.maxViewportDimensions ,
 			maxAnisotropy : detail.maxAnisotropy,
 			vertexShaderBestPrecision : serialize(detail.vertexShaderBestPrecision) ,
 			maxVertexTextureImageUnits: detail.maxVertexTextureImageUnits ,
@@ -554,16 +556,16 @@ function getWebGLInfo(done){
 			depthBits: detail.depthBits,
 			stencilBits: detail.stencilBits,
 			fragmentShaderFloatIntPrecision: detail.fragmentShaderFloatIntPrecision,
-			extensions: detail.extensions.join(',') ,
+			extensions: detail.extensions ,
 			hardwareConcurrency: navigator.hardwareConcurrency, 
 			webGLVersion: detail.webglVersion,
 			webGLFingerPrint : webglSign()
 		})
 	})
 	function getWebglCanvas() {
-      var canvas = document.createElement("canvas");
       var gl = null;
       try {
+      	var canvas = document.createElement("canvas");
         gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
       } catch(e) { /* squelch */ }
       if (!gl) { gl = null; }
@@ -1183,14 +1185,13 @@ var docCookies = {
 }
 
 function fontSupported(){
-	var fonts_list = "Agency FB,Aharoni,Algerian,Andalus,Angsana New,AngsanaUPC,Aparajita,Arabic Typesetting,Arial,Arial Black,Arial Narrow,Arial Rounded MT Bold,Arial Unicode MS,Baskerville Old Face,Batang,BatangChe,Bauhaus 93,Bell MT,Berlin Sans FB,Berlin Sans FB Demi,Bernard MT Condensed,Bodoni MT,Bodoni MT Black,Bodoni MT Poster Compressed,Book Antiqua,Bookman Old Style,Bookshelf Symbol 7,Britannic Bold,Broadway,Browallia New,BrowalliaUPC,Brush Script MT,Calibri,Calibri Light,Californian FB,Calisto MT,Cambria,Cambria Math,Candara,Castellar,Centaur,Century,Century Gothic,Century Schoolbook,Chiller,Colonna MT,Comic Sans MS,Consolas,Constantia,Cooper Black,Copperplate Gothic Bold,Copperplate Gothic Light,Corbel,Cordia New,CordiaUPC,Courier New,Curlz MT,DFKai-SB,DaunPenh,David,DilleniaUPC,DokChampa,Dotum,DotumChe,Ebrima,Edwardian Script ITC,Elephant,Engravers MT,Eras Bold ITC,Eras Demi ITC,Eras Light ITC,Eras Medium ITC,Estrangelo Edessa,EucrosiaUPC,Euphemia,Felix Titling,Footlight MT Light,Forte,FrankRuehl,Franklin Gothic Book,Franklin Gothic Demi,Franklin Gothic Demi Cond,Franklin Gothic Heavy,Franklin Gothic Medium,Franklin Gothic Medium Cond,FreesiaUPC,Freestyle Script,French Script MT,Gabriola,Garamond,Gautami,Georgia,Gigi,Gill Sans MT,Gill Sans MT Condensed,Gill Sans MT Ext Condensed Bold,Gill Sans Ultra Bold,Gill Sans Ultra Bold Condensed,Gisha,Gloucester MT Extra Condensed,Goudy Old Style,Goudy Stout,Gulim,GulimChe,Gungsuh,GungsuhChe,Haettenschweiler,Harlow Solid Italic,Harrington,High Tower Text,Impact,Imprint MT Shadow,Informal Roman,IrisUPC,Iskoola Pota,JasmineUPC,Jokerman,Juice ITC,Kalinga,Kartika,Khmer UI,KodchiangUPC,Kokila,Kristen ITC,Kunstler Script,Lao UI,Latha,Leelawadee,Levenim MT,LilyUPC,Lucida Bright,Lucida Calligraphy,Lucida Console,Lucida Fax,Lucida Handwriting,Lucida Sans,Lucida Sans Typewriter,Lucida Sans Unicode,MS Gothic,MS Mincho,MS Outlook,MS PGothic,MS PMincho,MS Reference Sans Serif,MS Reference Specialty,MS UI Gothic,MT Extra,MV Boli,Magneto,Maiandra GD,Malgun Gothic,Mangal,Marlett,Matura MT Script Capitals,Meiryo,Meiryo UI,Microsoft Himalaya,Microsoft JhengHei,Microsoft New Tai Lue,Microsoft PhagsPa,Microsoft Sans Serif,Microsoft Tai Le,Microsoft Uighur,Microsoft Yi Baiti,MingLiU,MingLiU-ExtB,MingLiU_HKSCS,MingLiU_HKSCS-ExtB,Miriam,Miriam Fixed,Mistral,Modern No. 20,Mongolian Baiti,Monotype Corsiva,MoolBoran,Narkisim,Niagara Engraved,Niagara Solid,Nyala,OCR A Extended,Old English Text MT,Onyx,PMingLiU,PMingLiU-ExtB,Palatino Linotype,Papyrus,Parchment,Perpetua,Perpetua Titling MT,Plantagenet Cherokee,Playbill,Poor Richard,Pristina,Raavi,Ravie,Rockwell,Rockwell Condensed,Rockwell Extra Bold,Rod,Sakkal Majalla,Segoe Print,Segoe Script,Segoe UI,Segoe UI Light,Segoe UI Semibold,Segoe UI Symbol,Shonar Bangla,Showcard Gothic,Shruti,SimSun-ExtB,Simplified Arabic,Simplified Arabic Fixed,Snap ITC,Stencil,Sylfaen,Symbol,Tahoma,Tempus Sans ITC,Times New Roman,Traditional Arabic,Trebuchet MS,Tunga,Tw Cen MT,Utsaah,Vani,Verdana,Vijaya,Viner Hand ITC,Vivaldi,Vladimir Script,Vrinda,Webdings,Wide Latin,Wingdings,Wingdings 2,Wingdings 3,仿宋,华文中宋,华文仿宋,华文宋体,华文彩云,华文新魏,华文楷体,华文琥珀,华文细黑,华文行楷,华文隶书,宋体,幼圆,微软雅黑,新宋体,方正姚体,方正舒体,楷体,隶书,黑体".split(",")
+	
 	var fontDetector = new Detector()
 	var supported_fonts = []
-	for (var i = fonts_list.length-1; i>=0;i--){
-		if (fontDetector.detect(fonts_list[i])) supported_fonts.push(fonts_list[i])
-		
+	for (var font in Dictionary.FONTS){
+		if (fontDetector.detect(font)) supported_fonts.push(Dictionary.FONTS[font])
 	}
-	return supported_fonts.join(',')
+	return supported_fonts
 
 }
 var Detector = function() {
@@ -1291,6 +1292,58 @@ function main(done){
 	} , MAXWAITTIME * 1000)
 
 }
+function isArray(obj){
+	return Object.prototype.toString.call(obj) === '[object Array]'
+}
+
+function fromDict(collection ,val){
+	var collect = Dictionary[collection]
+	if (!collect) return val
+	function getDictVal(v){
+		return (v in collect) ?(collect[v] + "") : v	
+	}
+	if (isArray(val)) {
+		var new_val = []
+		for(var i = 0 ;i< val.length; i++){
+			new_val.push(getDictVal(val[i]))		
+		}
+		return new_val 
+	}else{	
+		return getDictVal(val)
+	}
+
+}
+function dictCompress(k ,v){
+	if ('string' === typeof v) {
+		var v_low = v.toLowerCase()
+	}
+	switch (k){
+		case 'cpuArchitecture': 
+			return fromDict('FLASH_cpuArchitecture' , v)
+		case 'playerType':
+			return fromDict('FLASH_playerType' , v_low)
+		case 'screenColor':
+			return fromDict('FLASH_screenColor' , v_low)
+		case 'touchscreenType':
+			return fromDict('FLASH_touchScreenType' , v_low)
+		case 'osLanguage':
+			return fromDict('NAVIGATOR_language' , v_low)
+		case 'language':
+			return fromDict('NAVIGATOR_language' , v_low)
+		case 'mimeTypes':
+			return fromDict('NAVIGATOR_mimeTypes' , v)
+		case 'plugins':
+			return fromDict('NAVIGATOR_plugins' , v)
+		case 'extensions':
+			return fromDict('WEBGL_EXTENSIONS' , v)
+		case 'fragmentShaderFloatIntPrecision':
+			return fromDict('WEBGL_fragmentShaderFloatIntPrecision' , v)
+			
+	}
+	return v
+	
+
+}
 main(function(result){
 	const GuidKey = '_uid'
 	var guid = docCookies.getItem(GuidKey)
@@ -1302,18 +1355,33 @@ main(function(result){
 	var new_ret = {}
 	var arr = []
 	
+	var _dump = {} 
+		,_dump_check = {}
+	var i =0
 	for(var k in result){
-		if (UNKOWNKEY === result[k]) continue
-		if (result[k] === void(0)) continue		
-		if ( typeof result[k] === 'boolean') result[k] = result[k]? 1:0 
-		if ( typeof result[k] !== 'string') result[k] = result[k].toString() 
+		var v = result[k]
+		if (UNKOWNKEY === v) continue
+		if (v  === void(0)) continue		
+		v = dictCompress(k,v)	
 
-		new_ret[k] = result[k]
-		var len =  result[k].length + k.length 
-		arr.push('<tr><td>' + k + '</td><td>'+ len +' </td><td>' + result[k] +'</td></tr>' )//+ '     ' + result[k])
+		if ( typeof v  === 'boolean') v = v? 1:0 
+		if ( typeof v  !== 'string' ) v = v + "" 
+
+		if (_dump_check[v] ) {
+			if (v in _dump) _dump[v]++
+			else _dump[v] = 1 
+		}
+
+		_dump_check[v] = true
+	//	if (i++>20 ) break
+
+		new_ret[k] = v 
+		var len =  v.length // + k.length 
+		arr.push('<tr><td>' + k + '</td><td>'+ len +' </td><td>' + v +'</td></tr>' )//+ '     ' + result[k])
 
 	}
-	upPost(result)
+	console.log(_dump)
+	upPost(new_ret)
 	//arr = '<p>' + arr.join('</p><p>') + '</p>'
 	arr = '<table>' + arr.join('\n') + '</table>'
 	document.getElementById('result').innerHTML = arr
@@ -1385,15 +1453,6 @@ function lzw_decode(s) {
 function upPost(data){
 	//http://dcode.io/protobuf.js/#examples
 	var url_params = urlEncode(data)
-	var new_ret = {}
-	for (var k in data){
-		if (UNKOWNKEY !== data[k]) {
-			new_ret[k] = data[k]
-			if ( typeof new_ret[k] === 'number') new_ret[k] = new_ret[k].toString() 
-		}
-
-	}
-	data = new_ret
 	protobuf.load('/data.proto' , function(err , root){
 		console.time('a')
 		var Post = root.lookup('cola.Info.Con')
@@ -1404,6 +1463,41 @@ function upPost(data){
 		console.time('b')
 		console.log(lzw_encode(url_params).length)
 		console.timeEnd('b')
+		
+		console.log(data)	
+		console.time('c')
+		//http://pieroxy.net/blog/pages/lz-string/index.html
+		//var lzlog = LZString.compress(JSON.stringify(data))
+		var lzlog = LZString.compressToUTF16(JSON.stringify(data))
+		console.log( lzlog.length)
+
+		console.timeEnd('c')
+		///lzlog = Base64.encode(lzlog)
+		console.log(lzlog.length)
+		window.c = lzlog
+
+	/*
+		var l = new Image
+		l.src = '/welcome/A/A?q=' + (lzlog)
+	*/
+		var http = new XMLHttpRequest();
+		var url = "/welcome/A/A";
+		var params = lzlog
+		http.open("POST", url, true);
+
+		//Send the proper header information along with the request
+		http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+		http.onreadystatechange = function() {//Call a function when the state changes.
+			if(http.readyState == 4 && http.status == 200) {
+				console.log(http.responseText);
+			}
+		}
+		http.send(params);		
+
+		
+		
+		
 	})
 }
 

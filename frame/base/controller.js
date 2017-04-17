@@ -47,7 +47,7 @@ function mockApi(mock_uri , opt){
 					bridge(function(api_data){
 						evt(api_data)
 						try{
-							require('child_process').execSync('mkdir -p ' + api_path)
+							require('child_process').execSync('mkdir -p ' + path.dirname(api_path))
 							fs.writeFile(api_path,JSON.stringify({
 								"response" : api_data,
 								"delay": new Date - api_time,
@@ -130,8 +130,8 @@ function writeRes (req , res , opt , status , body, header , debugStr){
 function Controller(){
 
 }
-function bindDefault(php){
-	require( config.path.appPath + this.opt.hostPath +  config.path.model + 'defaultControl.js').bind.apply(this , arguments)
+function bindDefault(arg1 ,arg2){
+	require( config.path.appPath + this.opt.hostPath +  config.path.model + 'defaultControl.js').bind.call(this , arg1 , arg2)
 }
 
 Controller.prototype = {
@@ -190,10 +190,15 @@ Controller.prototype = {
 		this.mock_api_auto = !!auto
 		
 	},
-	bridgeMuch : function(php){
+	bridgeMuch : function(php , opt){
+		opt = opt || {}
+		var method = opt.method
+			,raw = opt.raw
+
 		var mock_api = config.etc.mockOff ? {} : this.mock_api || {}
 			,mock_api_auto = this.mock_api_auto 
 		for (var k in php){
+			var client  = this.bridge( php[k] ,undefined , method , raw)
 			if (mock_api[k]) {
 				var phpClient = mockApi( mock_api[k] , {
 					'auto': mock_api_auto,
@@ -201,7 +206,7 @@ Controller.prototype = {
 					'req' :  this.req , 
 					'host' : this.opt.hostPath })
 			}else{
-				var phpClient = this.bridge( php[k])
+				var phpClient = client
 			}
 			this.listenOn(phpClient , k)()
 		}
@@ -281,47 +286,36 @@ function ajaxTo(url, callBack , method){
 	var res = this.res
 		,req = this.req
 		,opt = this.opt
-     if (!callBack ) {
-        callBack = function(data , res_state){ 
-			 var status =   false === data ?400: 200
-			 if (4000 <= res_state)  status = res_state
+	var only_one =  'string' == typeof url 
+	if (!callBack ) {
+		callBack = function(data , res_state){ 
+			var status =   false === data ?400: 200
+			if (4000 <= res_state)  status = res_state
 
-			 if (false === data) data = ''
-			 else if ( 'string' != typeof url) data = JSON.stringify(data)
-			 else data += ''
-			 
-		
-			 writeRes(req , res , opt ,status , data ,{'Content-Type': 'application/json; charset=utf-8'
-                                        ,'Cache-Control': 'no-cache,no-store'
-                                        ,'service' :ServerHead })
-			 base.accessLog(status, req , new Date - req.__request_time)
-		 }
-	 }
+			if (false === data) data = ''
+			else if ( only_one) data =  data.ajaxTo
+			data = JSON.stringify(data)
 
-    if (config.api.spamhost && !req.__get.callback && 'string' == typeof url) {
-    	url = {
-    		'oragin' : url
-    	}
-    	var tempCbk = callBack;
-        callBack = function(data) {
-            tempCbk(data.oragin)
-        }
-    }
-
-	if ( 'string' == typeof url){
-		var php = this.bridge(url,undefined , method , true);
-		if (req.__get.callback) {	//for jsonp
-			var cbk = callBack;
-			callBack = function(data) {
+			if (req.__get.callback) {	//for jsonp
 				data = req.__get.callback + '(' + data + ')';
-				cbk(data);
 			}
+
+
+			writeRes(req , res , opt ,status , data ,{'Content-Type': 'application/json; charset=utf-8'
+				,'Cache-Control': 'no-cache,no-store'
+					,'service' :ServerHead })
+		base.accessLog(status, req , new Date - req.__request_time)
 		}
-		php(callBack);
-	}else {
-		this.bridgeMuch(url);
-		this.listenOver(callBack,true);
 	}
+
+
+	if (only_one ){
+		//var php = this.bridge(url,undefined , method , true);
+		//php(callBack);
+		url = {'ajaxTo' : url}
+	}
+	this.bridgeMuch(url , {'method' : method ,'raw' : true})
+	this.listenOver(callBack,true);
 }
 
 function render(tplName , data , callBack){
