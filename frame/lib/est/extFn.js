@@ -8,16 +8,7 @@ function genGuid(){
 		return v.toString(16);
 	})
 }
-var plugins = fs.readdirSync(path.resolve(__dirname,'plugin'))
-var _plug = {}
-plugins.forEach(function(plug){
-    var ext = path.extname(plug)
-    if ('.js' != ext && '.json' != ext) return
-    var plugfn = require(path.resolve(__dirname,'plugin',plug))
-    
-    _plug[plug.replace(ext,'')] = plugfn 
-})
-exports.plugin = _plug
+
 
 function etic(tpl){
 	var sn = '_ret_'  
