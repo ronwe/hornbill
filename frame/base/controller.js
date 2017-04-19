@@ -294,7 +294,6 @@ function ajaxTo(url, callBack , method){
 
 			if (false === data) data = ''
 			else if ( only_one) data =  data.ajaxTo
-			data = JSON.stringify(data)
 
 			if (req.__get.callback) {	//for jsonp
 				data = req.__get.callback + '(' + data + ')';
