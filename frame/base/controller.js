@@ -1,4 +1,3 @@
-//var jst = require('jst');
 var util = require("util")
 	, events =  require("events");
 var est = require(config.path.lib + 'est/est.js');
@@ -52,7 +51,7 @@ function mockApi(mock_uri , opt){
 								"response" : api_data,
 								"delay": new Date - api_time,
 								"status": false === api_data ? 400 : 200,
-							}))
+							},null,4))
 						}catch(err){
 							base.errorLog('error' , 'mock' , api_path  )
 									
