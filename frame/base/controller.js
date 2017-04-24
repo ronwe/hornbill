@@ -96,7 +96,7 @@ function mockApi(mock_uri , opt){
 			* error {message}
 			*/
 			
-			var api_res=  {'code' : api_result.code || 0 , 'data' : api_result.code ?api_result.error.message : api_result.response}
+			var api_res=   api_result.code ?api_result.error.message : api_result.response
 			
 			setTimeout(function(){
 				evt(api_res)
@@ -294,16 +294,22 @@ function ajaxTo(url, callBack , method){
 
 			if (false === data) data = ''
 			else if ( only_one) data =  data.ajaxTo
+			//mock回来的数据不是string
+			if (!Buffer.isBuffer(data) && 'object' === typeof data){
+				data = JSON.stringify(data)
+			}
 
 			if (req.__get.callback) {	//for jsonp
 				data = req.__get.callback + '(' + data + ')';
 			}
 
 
-			writeRes(req , res , opt ,status , data ,{'Content-Type': 'application/json; charset=utf-8'
+			writeRes(req , res , opt ,status , data ,{
+				'Content-Type': 'application/json; charset=utf-8'
 				,'Cache-Control': 'no-cache,no-store'
-					,'service' :ServerHead })
-		base.accessLog(status, req , new Date - req.__request_time)
+				,'service' :ServerHead 
+			})
+			base.accessLog(status, req , new Date - req.__request_time)
 		}
 	}
 
