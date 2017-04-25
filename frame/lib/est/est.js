@@ -1,6 +1,7 @@
 var fs = require('fs') 
 	,path = require('path')
-var md5 = require('crypto');
+var md5 = require('crypto')
+	,extend= require('util')._extend
 var _cacheArr = {};
 var _watched = {};
 var compiledFolder = '',
@@ -90,7 +91,7 @@ function getErrorDetail(err , cbk){
 	}
 }
 
-function renderFile(tplpath, tplname, data, callBack, tplPre, requireFn) {
+function renderFile(tplpath, tplname, data, callBack, tplPre, requireFn ,requireExtend) {
 
 	tplname = tplpath + tplname
 	var compiledFile = getCompiledName(tplname, tplPre)
@@ -110,6 +111,10 @@ function renderFile(tplpath, tplname, data, callBack, tplPre, requireFn) {
 	function fillTpl() {
 		if(true === requireFn) {
 			return function(_data){ 
+				if (requireExtend){
+					_data = _data || {}
+					extend( _data, requireExtend)
+				}
 				return _clearCache(compiledFile).call(_data)
 			}
 		}
@@ -175,9 +180,9 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
     var comFileCon = "/*--" + tplname + "--*/ \n \
     var est = require( '"+ winPath(est_path) +"'); \n \
     var _extFn = require('" + winPath(extFnPath) + "'); \n \
-    function RequireTpl(tpl) { return est.renderFile('" + winPath(tplpath) + "' ,tpl , null , null ,'" + tplPre + "' ,true); } ; \n \
     function __getHtml () { \n \
 		var __StaticModel = this.__StaticModel = this.__StaticModel || {}; \n \
+		function RequireTpl(tpl,no_ext) { return est.renderFile('" + winPath(tplpath) + "' ,tpl , null , null ,'" + tplPre + "' ,true,no_ext ? null : {__StaticModel: __StaticModel}); } ; \n \
 		var IncludeStatic = function ( staticMod, type) { \n \
 			__htm += _extFn.remoteInclude.call(this,{staticMod:staticMod,type:type}) ; \n \
 		}.bind(this); \n \
@@ -247,7 +252,7 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 					}
 					break
 				case '#':
-					fillCmpl( '__htm += RequireTpl("' + funcCon.substr(1).trim() + '" )(this)||"";\n' , true)
+					fillCmpl( '__htm += RequireTpl("' + funcCon.substr(1).trim() + '" ,true)(this)||"";\n' , true)
 					break
 				case '!':
 					fillCmpl( '__htm += _extFn.remoteInclude.call(this , {url:"' + funcCon.substr(1).trim() +  ' "});\n' , true)
