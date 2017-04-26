@@ -57,7 +57,11 @@ function loadMod(modPath , modName ,load_stack , _mods_state , _bool_load_depenc
 
 		var script_code = 'booter.define("' + modName + '" , ' + JSON.stringify(depencies)+ ' , function(require ,exports ,module){ \n' + data + ' \n});\n'
 
-		if (traverser) script_code = traverser(script_code)
+		try{
+			if (traverser) script_code = traverser(script_code)
+		}catch(err){
+			base.errorLog(modPath , modName, err)
+		}
 
         cbk(null , script_code)
     }) 
