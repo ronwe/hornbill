@@ -48,26 +48,66 @@ function etic(tpl){
 
 }
 
+var TPL_CACHE = {}
+	,_watched = {}	
+function watchTpl(tpl_path , _cache_key) {
+	if (!config.etc.watchingTpl) return
+	if (_watched[_cache_key]) return
+
+	fs.watchFile(tpl_path , {
+		persistent: true,
+		interval: 300
+	}, onChg)
+
+	_watched[_cache_key] = true
+
+
+	function onChg(event, filename) {
+		delete TPL_CACHE[_cache_key]
+	}
+
+}
+/*
+ * trans_mark 0|1|2
+ * */
 exports.insertTpl4JS = function(tpl_root , tpl_name ,  jsid, trans_mark ){
 	var tpl_path = path.resolve(tpl_root,tpl_name)
-	var tpl_body
-	if (undefined === trans_mark) trans_mark = 1 
-	try{
-		tpl_body = fs.readFileSync(tpl_path).toString() 
-	}catch(err){
-		tpl_body = `/*tpl ${tpl_name} not found*/`	
-		trans_mark = false
-	}
-	if (trans_mark && tpl_body){
-		tpl_body = tpl_body.replace(/<\%/g,'<?').replace(/\%>/g,'?>')
-	}
-	if (2 == trans_mark){
-		tpl_body = etic(tpl_body)
-		return `<script type="text/template-x" id="${jsid}">${tpl_body}</script>`
-		
-	}	
 
-	return `<script type="text/template" id="${jsid}">${tpl_body}</script>`
+	var tpl_body
+		,no_cache = false
+		,tag_type = 'text/template'
+	if (undefined === trans_mark) trans_mark = 1 
+
+	var _cache_key = tpl_path + trans_mark
+	var _cached_tpl  = TPL_CACHE[_cache_key]
+
+	watchTpl(tpl_path , _cache_key)
+
+	if (_cached_tpl) {
+		tpl_body = _cached_tpl
+	}else{
+		try{
+			tpl_body = fs.readFileSync(tpl_path).toString() 
+		}catch(err){
+			tpl_body = `/*tpl ${tpl_name} not found*/`	
+			trans_mark = false
+			no_cache = true
+		}
+		if (trans_mark && tpl_body){
+			tpl_body = tpl_body.replace(/<\%/g,'<?').replace(/\%>/g,'?>')
+		}
+
+
+		if (2 == trans_mark){
+			tpl_body = etic(tpl_body)
+			tag_type = 'text/template-x'
+		}	
+	}
+	if (!no_cache) {
+		TPL_CACHE[_cache_key] = tpl_body
+	}
+
+	return `<script type="${tag_type}" id="${jsid}">${tpl_body}</script>`
 }
 exports.htmlEncode = function(str){
 	if (typeof str != 'string'){
