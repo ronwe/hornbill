@@ -166,7 +166,7 @@ function handleRoute(request ,response , virtualHostName  , reqUrl){
 				var CompilerInst = require(staticCompiler)
 				comboFile(reqPath , function(file , read_to){
 					CompilerInst.compile(
-						{ 'modPath' : static_root_path , 'mods' : file} 
+						{ 'app' : hostPath ,'modPath' : static_root_path , 'mods' : file} 
 						, function(err , context){
 							if (err) {
 								echoError(err)

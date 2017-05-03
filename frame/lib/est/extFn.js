@@ -26,15 +26,15 @@ function etic(tpl){
             , f = tpl.slice(sPos + 2 , ePos)
             ,tpl = tpl.slice(ePos + 2)
         var op = f.charAt(0)
-        if (part1.length) con += sn + " += '" + tLine(part1) + "';"
+        if (part1.length) con += ";" + sn + " += '" + tLine(part1) + "';"
         switch (op){
             case '=' :
                 f = f.slice(1)
-                con += sn + " += " + f + ";"
+                con += ";" +sn + " += " + f + ";"
                 break
             case '#' :
                 f = f.slice(1).trim()
-                con += sn +  " += etic2('" + f + "')(this);"
+                con += ";" + sn +  " += etic2('" + f + "')(this);"
                 break
             default:
                 con += f
@@ -42,7 +42,7 @@ function etic(tpl){
 
     }
 
-    tpl.length  && (con += sn + " += '" + tLine(tpl) + "';")
+    tpl.length  && (con += ";" + sn + " += '" + tLine(tpl) + "';")
     con += 'return ' + sn
 	return con
 
