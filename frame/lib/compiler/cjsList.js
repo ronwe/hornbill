@@ -4,7 +4,7 @@ var extend = require('util')._extend
  * 获得组件及依赖列表 组件内容md5值
  * **/
 var GlobalCache
-if (config.etc.watchingTpl) GlobalCache = {}
+if (!config.etc.watchingTpl) GlobalCache = {}
 exports.compile = function(opt , cbk){
 	var _Cache = GlobalCache || {}
     if (!opt || !opt.mods ) return cbk('compile nothing')

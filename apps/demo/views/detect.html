@@ -2,9 +2,22 @@
 http://pieroxy.net/blog/pages/lz-string/guide.html
 https://github.com/pieroxy/lz-string/
 <div id="result"></div>
-<script src="/js/protobuf.min.js"></script>
+<script type="text/plain">
+var b = function (){alert('success')}
+window.setTimeout(function(){
+	alert(1)
+	try{
+		b()
+	}catch(b){
+		alert(b.message.toString())
+	}
+},5)
+</script>
+<!--
 <script src="/lz-string.min.js"></script>
 <script src="/dict.js"></script>
+<script src="/key_dict.js"></script>
 <script src="/detective.js"></script>
-<script>
-</script>
+-->
+<script>var st = +new Date</script>
+<script src="/fingerprint.js"></script>
