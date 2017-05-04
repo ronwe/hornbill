@@ -14,9 +14,10 @@ exports.compile = function(opt , cbk){
 	var opt_mut = extend({} , opt || {} )
 	opt_mut.loadDepency = true 
 
-	opt_mut.traverser = function(data ,mod ,depencies){
+	opt_mut.traverser = function(data ,mod ,depencies,err){
 		var key = opt_mut.app + mod
-		_Cache[key] = {'md5' : base.md5(data),'depencies':depencies}
+
+		_Cache[key] = {'md5' : err ? '' : base.md5(data),'depencies':depencies}
 		fillInResult(mod , _Cache[key])
 	}
 
