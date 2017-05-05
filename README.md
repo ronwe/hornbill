@@ -18,4 +18,4 @@
 
 ------
 
-其它解决方案 [mid](https://github.com/xudeming208/mid)
+浏览器端模块加载器，AMD组件加载，合并加载，本地缓存 LRU清理 (https://github.com/ronwe/booter.js)
