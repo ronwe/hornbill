@@ -101,7 +101,15 @@ function route(request ,response ) {
 		return	
 	}
 	
-	processStack(middleware_before , request ,response , virtualHostName , null ,function(){
+	processStack(middleware_before , request ,response , virtualHostName , null ,function(err , next_val){
+		if (next_val.rewrite){
+			try{
+				var reqUrl  = url.parse(next_val.rewrite , true)
+			}catch(err){
+				base.errorLog('rewrite to error url ',err)
+				return
+			}
+		}
 		 handleRoute(request ,response , virtualHostName , reqUrl)
 	})
 	

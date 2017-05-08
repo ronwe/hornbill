@@ -9,7 +9,12 @@ exports.compile = function(opt , cbk){
 	if (!CompilerBase.combo) return cbk('compiler doesnt exists')
 	opt = opt || {}
 	var opt_mut = extend({} , opt )
-	opt_mut.loadDepency = true
+	if (opt_mut.mods.slice(0,1) === '!'){
+		opt_mut.loadDepency = false 
+		opt_mut.mods = opt_mut.mods.slice(1)
+	}else{	
+		opt_mut.loadDepency = true
+	}
 
 	function miniFy(str){		
 		var minied_code = uglifyjs.minify(str , {fromString : true})
