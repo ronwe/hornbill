@@ -1,3 +1,4 @@
+
 /*
  * @author rongwei 3/25/2017   
  * TODO 
@@ -29,6 +30,7 @@
  * */
 ;(function(){
 var MAXWAITTIME = 5 //等待5秒即上报
+var MAXFLASHTIME = 2 //flash 等待时间
 
 var SIGNTEXT = 'writen by enoch in http://www.elong.com '
 
@@ -44,7 +46,7 @@ architecture	浏览器所在的操作系统信息
 DeviceType	设备类型
 Browser	浏览器类型
 */
-const UNKOWNKEY = 'unkown'
+var UNKOWNKEY = 'unkown'
 
 function serialize(object){
 	var ret = []		
@@ -56,6 +58,7 @@ function serialize(object){
 }
 
 function syncLoadScript(url ,done){
+	return done()
 	var script = document.createElement('script')
 	script.src = url 
 	script.onload = done
@@ -138,7 +141,7 @@ function getGeoInfo(done){
 *osName	操作系统名称
 *osVersion	操作系统版本
 *osType	操作系统类型
-*osLanguage	用户设置的操作系统语言
+*browserLanguage	用户设置的操作系统语言
 *Browser	浏览器类型
 *architecture	浏览器所在的操作系统信息
 *DeviceType	设备类型
@@ -168,14 +171,14 @@ function getUAInfo(done){
 			browserPlatform : ua_info.engine.name,
 			browserName : ua_info.browser.name, 
 			browserEngine : ua_info.engine.name,
-			browserVersion : ua_info.browser.version ,
+			browserVersion : ua_info.browser.version 
 		})
 	})
 }
 
 function getNavigatorInfo(done){
 	done({
-		osLanguage : navigator.language || navigator.userLanguage || navigator.browserLanguage || navigator.systemLanguage || UNKOWNKEY,
+		browserLanguage : navigator.language || navigator.userLanguage || navigator.browserLanguage || navigator.systemLanguage || UNKOWNKEY,
 		osType : navigator.platform || UNKOWNKEY,
 		ua : navigator.userAgent,
 		pixelRatio : window.devicePixelRatio,
@@ -184,7 +187,7 @@ function getNavigatorInfo(done){
 		browserKernel : navigator.appName,
 		//userAgent : navigator.userAgent,
 		
-		acceptEncoding :  document.characterSet || document.charset,
+		acceptEncoding :  document.characterSet || document.charset
 			
 
 	})
@@ -236,9 +239,11 @@ function getSupportInfo(done){
 		if (support_storage) {
 			var _lsTotal=0,_xLen,_x;
 			for(_x in localStorage){
+				if (!localStorage.hasOwnProperty(_x)) continue 
 				_xLen= ((localStorage[_x].length + _x.length)* 2)
 				_lsTotal+=_xLen
 			}
+			
 			return _lsTotal
 		}else{
 			return  UNKOWNKEY
@@ -248,6 +253,7 @@ function getSupportInfo(done){
 		if (support_sessionStorage) {
 			var _lsTotal=0,_xLen,_x;
 			for(_x in sessionStorage){
+				if (!sessionStorage.hasOwnProperty(_x)) continue 
 				_xLen= ((sessionStorage[_x].length + _x.length)* 2)
 				_lsTotal+=_xLen
 			}
@@ -268,7 +274,7 @@ function getSupportInfo(done){
 		css3 : cssSupport('textShadow'),
 		browserWinPos : serialize(getWindowPos()),
 		browserWinSize : serialize(getWindowSize()),
-		supportCookie : navigator.cookieEnabled,
+		supportCookie : navigator.cookieEnabled
 
 	})
 }
@@ -431,7 +437,7 @@ function getNavInfo(done){
 		product : navigator.product,
 		productSub : navigator.productSub,	
 		vendorSub : navigator.vendorSub,
-		buildID : navigator.buildID || UNKOWNKEY,
+		buildID : navigator.buildID || UNKOWNKEY
 		
 	})
 
@@ -471,7 +477,7 @@ function getScreenData(done){
 		sysfonts : fonts_list,
 		screenResolution : screen.width + 'x' + screen.height,
 		
-		dpi : dpi.x + ',' + dpi.y ,
+		dpi : dpi.x + ',' + dpi.y 
 	})
 }
 /*
@@ -639,6 +645,7 @@ webRTCFingerPrint	WebRTC指纹(浏览器)
 function getWebRtcInfo(done){
 	syncLoadScript(WEBRTCLIB , function(){
 		var detect_RTC = DetectRTC
+		if (! detect_RTC.isWebRTCSupported) done({})
 		detect_RTC.DetectLocalIPAddress(function(ip){
 			var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection
 			var offerer = new RTCPeerConnection({
@@ -795,14 +802,19 @@ function getOtherInfo(done){
 }
 function getFlashInfo(done){
 	if (!getFlashSupport()) return done({})
-
 	syncLoadScript(FLASHLIB , function(){
 		swfobject.registerObject("myId", "9.0.0", "expressInstall.swf");
+		window.setTimeout(function(){
+			window.flashInfo({})
+		},MAXFLASHTIME * 1000 )
 		window.flashInfo = function(info){
 			try{
+				document.body.removeChild(div)
+			
 				var flash_env = JSON.parse(info)
 				flash_env.flashVersion =  getFlashVersion()
 				done(flash_env)
+				
 			}catch(err){
 				done({})	
 			}
@@ -813,13 +825,13 @@ function getFlashInfo(done){
 
 		var strVar="";
 		strVar += "<object id=\"myId\" classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" width=\"3\" height=\"1\">";
-		strVar += "                <param name=\"movie\" value=\"/test.swf\" \/>";
+		strVar += "                <param name=\"movie\" value=\"http://m.elongstatic.com/common/fe/2017/js/test.swf\" \/>";
 		strVar += "                <!--[if !IE]>-->";
-		strVar += "                <object type=\"application\/x-shockwave-flash\" data=\"/test.swf\" width=\"3\" height=\"1\">";
+		strVar += "                <object type=\"application\/x-shockwave-flash\" data=\"http://m.elongstatic.com/common/fe/2017/js/test.swf\" width=\"3\" height=\"1\">";
 		strVar += "                    <!--<![endif]-->";
 		strVar += "                    <div>";
 		strVar += "                        <h1>Alternative content<\/h1>";
-		strVar += "                        <p><a href=\"http:\/\/www.adobe.com\/go\/getflashplayer\"><img src=\"http:\/\/www.adobe.com\/images\/shared\/download_buttons\/get_flash_player.gif\" alt=\"Get Adobe Flash player\" \/><\/a><\/p>";
+		strVar += "                        <p><a href=\"http:\/\/www.adobe.com\/go\/getflashplayer\">Get Adobe Flash player<\/a><\/p>";
 		strVar += "                    <\/div>";
 		strVar += "                    <!--[if !IE]>-->";
 		strVar += "                <\/object>";
@@ -1146,7 +1158,7 @@ function getBatteryInfo(done){
 	if (!battery) return done({
 		batteryLevel : UNKOWNKEY ,
 		chargeState : UNKOWNKEY,
-		dischargingTime : UNKOWNKEY,
+		dischargingTime : UNKOWNKEY
 	})
 	done({
 		batteryLevel :  battery.level,
@@ -1279,13 +1291,14 @@ function main(done){
 	runGetInfo(supportImage) 
 	runGetInfo(getNavInfo) 
 	runGetInfo(getScreenData) 
-	runGetInfo(getWebGLInfo) 
-	runGetInfo(getWebRtcInfo) 
 	runGetInfo(getBrowserType) 
 	runGetInfo(getPerformaceInfo) 
 	runGetInfo(getOtherInfo) 
 	runGetInfo(getFlashInfo) 
 	runGetInfo(getCanvasInfo) 
+	runGetInfo(getWebGLInfo) 
+	runGetInfo(getWebRtcInfo) 
+
 
 	window.setTimeout(function(){
 		callDone()
@@ -1313,7 +1326,13 @@ function fromDict(collection ,val){
 	}
 
 }
+function keyDicCompress(k){
+	///return k
+	if (k in KeyDict) return KeyDict[k]
+	return k
+}
 function dictCompress(k ,v){
+	///return v
 	if ('string' === typeof v) {
 		var v_low = v.toLowerCase()
 	}
@@ -1326,7 +1345,7 @@ function dictCompress(k ,v){
 			return fromDict('FLASH_screenColor' , v_low)
 		case 'touchscreenType':
 			return fromDict('FLASH_touchScreenType' , v_low)
-		case 'osLanguage':
+		case 'browserLanguage':
 			return fromDict('NAVIGATOR_language' , v_low)
 		case 'language':
 			return fromDict('NAVIGATOR_language' , v_low)
@@ -1344,12 +1363,15 @@ function dictCompress(k ,v){
 	
 
 }
+var TimeRecord = {'st' : +new Date} 
+TimeRecord.load = TimeRecord.st - window.st
 main(function(result){
-	const GuidKey = '_uid'
+	TimeRecord.collect = new Date - TimeRecord.st
+	var GuidKey = '_fid'
 	var guid = docCookies.getItem(GuidKey)
 	if (!guid){
  		guid = genGuid()
-		docCookies.setItem(GuidKey , guid , Infinity)
+		docCookies.setItem(GuidKey , guid , Infinity ,'/')
 	}
 	
 	var new_ret = {}
@@ -1357,7 +1379,6 @@ main(function(result){
 	
 	var _dump = {} 
 		,_dump_check = {}
-	var i =0
 	for(var k in result){
 		var v = result[k]
 		if (UNKOWNKEY === v) continue
@@ -1373,132 +1394,78 @@ main(function(result){
 		}
 
 		_dump_check[v] = true
-	//	if (i++>20 ) break
 
-		new_ret[k] = v 
+		//key字典				
+		var nk = keyDicCompress(k)
+		new_ret[nk] = v 
 		var len =  v.length // + k.length 
-		arr.push('<tr><td>' + k + '</td><td>'+ len +' </td><td>' + v +'</td></tr>' )//+ '     ' + result[k])
+		///arr.push('<tr><td>' + nk  + '</td><td>'+ len +' </td><td>' + v +'</td></tr>' )//+ '     ' + result[k])
 
 	}
-	console.log(_dump)
-	upPost(new_ret)
+	new_ret['token'] = guid
+	TimeRecord.dict  = new Date - TimeRecord.st
 	//arr = '<p>' + arr.join('</p><p>') + '</p>'
-	arr = '<table>' + arr.join('\n') + '</table>'
-	document.getElementById('result').innerHTML = arr
-	console.log(guid , result)
+	///arr = '<table>' + arr.join('\n') + '</table>'
+	//console.log(guid , result)
+
+	upPost(new_ret)
 })
 
-function urlEncode(data){
-	var ret = []
-		,i = 0
-	for (var key in data){
-		ret.push(key + '=' + encodeURIComponent(data[key]))
-	}
-	return ret.join('&')
-}
 
-// LZW-compress a string
-function lzw_encode(s) {
-    var dict = {};
-    var data = (s + "").split("");
-    var out = [];
-    var currChar;
-    var phrase = data[0];
-    var code = 256;
-    for (var i=1; i<data.length; i++) {
-        currChar=data[i];
-        if (dict[phrase + currChar] != null) {
-            phrase += currChar;
-        }
-        else {
-            out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-            dict[phrase + currChar] = code;
-            code++;
-            phrase=currChar;
-        }
-    }
-    out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-    for (var i=0; i<out.length; i++) {
-        out[i] = String.fromCharCode(out[i]);
-    }
-    return out.join("");
-}
-
-// Decompress an LZW-encoded string
-function lzw_decode(s) {
-    var dict = {};
-    var data = (s + "").split("");
-    var currChar = data[0];
-    var oldPhrase = currChar;
-    var out = [currChar];
-    var code = 256;
-    var phrase;
-    for (var i=1; i<data.length; i++) {
-        var currCode = data[i].charCodeAt(0);
-        if (currCode < 256) {
-            phrase = data[i];
-        }
-        else {
-           phrase = dict[currCode] ? dict[currCode] : (oldPhrase + currChar);
-        }
-        out.push(phrase);
-        currChar = phrase.charAt(0);
-        dict[code] = oldPhrase + currChar;
-        code++;
-        oldPhrase = phrase;
-    }
-    return out.join("");
-}
 
 function upPost(data){
 	//http://dcode.io/protobuf.js/#examples
-	var url_params = urlEncode(data)
-	protobuf.load('/data.proto' , function(err , root){
-		console.time('a')
-		var Post = root.lookup('cola.Info.Con')
-		var message = Post.create(data)
-		var buffer = Post.encode(message).finish()
-		console.timeEnd('a')
-		console.log(buffer.byteLength , JSON.stringify(data).length , url_params.length)
-		console.time('b')
-		console.log(lzw_encode(url_params).length)
-		console.timeEnd('b')
 		
-		console.log(data)	
-		console.time('c')
-		//http://pieroxy.net/blog/pages/lz-string/index.html
-		//var lzlog = LZString.compress(JSON.stringify(data))
-		var lzlog = LZString.compressToUTF16(JSON.stringify(data))
-		console.log( lzlog.length)
+	//http://pieroxy.net/blog/pages/lz-string/index.html
+	//var lzlog = LZString.compress(JSON.stringify(data))
+// LZW-compress a string
+	///var lzlog = LZString.compressToUTF16(JSON.stringify(data))
+	///var lzlog = LZString.compressToEncodedURIComponent(JSON.stringify(data))
 
-		console.timeEnd('c')
-		///lzlog = Base64.encode(lzlog)
-		console.log(lzlog.length)
-		window.c = lzlog
+
+//	var token = data.token
+//	delete data.token
+
+	var lzlog = JSON.stringify(data)
 
 	/*
-		var l = new Image
-		l.src = '/welcome/A/A?q=' + (lzlog)
+	document.getElementById('token').value = token
+	document.getElementById('info').value = lzlog 
 	*/
-		var http = new XMLHttpRequest();
-		var url = "/welcome/A/A";
-		var params = lzlog
-		http.open("POST", url, true);
+	
+	
+	
+	
+	
 
-		//Send the proper header information along with the request
-		http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	//lzlog = String.fromCharCode(794) + String.fromCharCode(787)
+	//var lzlog = lzw_encode(JSON.stringify(data))
+	//	document.body.innerHTML =  JSON.stringify(data,null , 4)
 
-		http.onreadystatechange = function() {//Call a function when the state changes.
-			if(http.readyState == 4 && http.status == 200) {
-				console.log(http.responseText);
-			}
+	TimeRecord.compress = new Date - TimeRecord.st
+
+	var http = new XMLHttpRequest();
+	var url = "http://openapi.elong.com/fp/b" 
+	var params = lzlog
+	http.open("POST", url, true);
+
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded;charset=UTF-8")
+
+	http.onreadystatechange = function() {//Call a function when the state changes.
+		if(http.readyState == 4 && http.status == 200) {
+			TimeRecord.posted = new Date - TimeRecord.st
+
+			TimeRecord.posted = TimeRecord.posted - TimeRecord.compress
+			TimeRecord.compress = TimeRecord.compress - TimeRecord.dict
+			TimeRecord.dict = TimeRecord.dict - TimeRecord.collect
+
+			delete TimeRecord.st
+			//document.body.innerHTML += JSON.stringify(TimeRecord,null , 4)
 		}
-		http.send(params);		
+	}
+	http.send('req='+ encodeURIComponent(lzlog));		
 
 		
-		
-		
-	})
 }
 
 })()
