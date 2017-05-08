@@ -102,9 +102,9 @@ function route(request ,response ) {
 	}
 	
 	processStack(middleware_before , request ,response , virtualHostName , null ,function(err , next_val){
-		if (next_val.rewrite){
+		if (next_val && next_val.rewrite){
 			try{
-				var reqUrl  = url.parse(next_val.rewrite , true)
+				reqUrl  = url.parse(next_val.rewrite , true)
 			}catch(err){
 				base.errorLog('rewrite to error url ',err)
 				return
