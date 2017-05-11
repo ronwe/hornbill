@@ -164,7 +164,11 @@ function handleRoute(request ,response , virtualHostName  , reqUrl){
 			return file.replace(/\.\.\//g,'').replace(/^\//g,'')
 		}
 		var static_root_path = path.resolve(config.path.appPath  , hostPath , 'static')
-        if (config.etc.compiler && '~' === reqPath.slice(0,1) ){
+		//未配置编译器的 处理成纯静态文件
+		if (!staticCompiler && config.etc.compiler && '~' === reqPath.slice(0,1) ){
+			reqPath = reqPath.slice(1)
+		}
+        if (config.etc.compiler && staticCompiler  && '~' === reqPath.slice(0,1) ){
 			reqPath = reqPath.slice(1)
 		   	fs.stat(staticCompiler ,function(err, stats)  {
 				if (err) {

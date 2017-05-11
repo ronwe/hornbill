@@ -3,8 +3,9 @@ package {
     import flash.system.Capabilities;
     import flash.external.ExternalInterface;
 
-    public class FlashTest extends Sprite {
-        public function FlashTest() {
+    public class info extends Sprite {
+        public function info() {
+			flash.system.Security.allowInsecureDomain("*");
 
             var envObj:Object = new Object();
 
