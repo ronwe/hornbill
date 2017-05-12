@@ -11,6 +11,7 @@ exports.compile = function(opt , cbk){
     var mods = opt.mods.slice(0 , opt.mods.lastIndexOf('.')).split('+') 
 
 	var result = {}
+		,result_keys = []
 	var opt_mut = extend({} , opt || {} )
 	opt_mut.loadDepency = true 
 
@@ -25,6 +26,7 @@ exports.compile = function(opt , cbk){
 	function fillInResult(mod , mod_info){
 		if (!mod || !mod_info ||  result[mod]) return
 		result[mod] = mod_info.md5 
+		result_keys.push(mod)
 		mod_info.depencies.forEach( m => {
 			var key = opt_mut.app + m
 			fillInResult(m , _Cache[key])
@@ -41,7 +43,13 @@ exports.compile = function(opt , cbk){
 	})
 	opt_mut.mods = toTrave.join('+') + '.js'
 	combo.compile(opt_mut, (err , body) =>{
-		body = JSON.stringify(result)
+		//优化js加载应反转树 无依赖的在前面
+		var result_reverse = [] 
+		for (var i=result_keys.length- 1; i >= 0 ;i--){
+			var key = result_keys[i]
+			result_reverse.push(`"${key}":"${result[key]}"`)
+		}
+		body = '{' + result_reverse.join(',') + '}'  //JSON.stringify(result_reverse)
 		cbk(err ,body)
 	})
 }
