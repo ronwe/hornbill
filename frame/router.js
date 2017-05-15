@@ -93,6 +93,16 @@ function route(request ,response ) {
 		return	
 	}
 
+	if (!response.json) {
+		response.json = function(obj){
+			try{
+				response.end(JSON.stringify(obj))
+			}catch(err){
+				response.end(err)
+			}
+		}
+	}
+
     var virtualHostName = config.virtualHost[reqUrl.hostname]
 	if (!virtualHostName){
 		console.log ('Route Parse Error:' , request.headers.host)

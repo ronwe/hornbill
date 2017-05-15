@@ -44,6 +44,11 @@ function wrapExpt(configPath ,extConfig){
 			if (!extConfig[key]) return
 			extend(exports[key] , _clone_ext[key])
 		})
+
+		//判断环境变量 生产环境将etc.watchingTpl设为false ，框架内使用watchingTpl判断是否缓存
+		if (process.env.NODE_ENV == 'production') {
+			exports.etc.watchingTpl = false
+		}	
 	}
 	extendFromOpt()
 }
