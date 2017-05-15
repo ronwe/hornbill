@@ -294,9 +294,10 @@ function ajaxTo(url, callBack , method){
 			if (4000 <= res_state)  status = res_state
 
 
-			if (false === data) data = ''
-			//mock回来的数据不是string
-			if (!Buffer.isBuffer(data) && 'object' === typeof data){
+			if (false === data) {
+				data = ''
+			} else if (!Buffer.isBuffer(data) && 'object' === typeof data){
+				//mock回来的数据不是string
 				data = JSON.stringify(data)
 			}
 
