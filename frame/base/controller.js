@@ -288,11 +288,13 @@ function ajaxTo(url, callBack , method){
 	var only_one =  'string' == typeof url 
 	if (!callBack ) {
 		callBack = function(data , res_state){ 
+			if ( only_one) data =  data.ajaxTo
+
 			var status =   false === data ?400: 200
 			if (4000 <= res_state)  status = res_state
 
+
 			if (false === data) data = ''
-			else if ( only_one) data =  data.ajaxTo
 			//mock回来的数据不是string
 			if (!Buffer.isBuffer(data) && 'object' === typeof data){
 				data = JSON.stringify(data)
