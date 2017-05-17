@@ -1,4 +1,4 @@
-var hornbill = require('../../hornbill/frame')
+var hornbill = require('../frame')
 	,path = require('path')
 
 /*
@@ -17,13 +17,15 @@ function jsRewrite(req, res, next ,val){
 }
 */
 var cacheWorker = require('./middleware/cache.js')
+	,gzip = require('./middleware/compress.js')
 /*
 * urlRegTest url正则测试
 * host 域
 * after app处理后 
 */
 if (process.env.NODE_ENV == 'production'){
-	hornbill.use(cacheWorker.work({'expires' : 0}), {urlRegTest:/\.(js|css)(\?.*)?$/g,host:'fx'  })
+	hornbill.use(gzip(), {host:'demo'  })
+	hornbill.use(cacheWorker.work({'expires' : 0}), {urlRegTest:/\.(js|css)(\?.*)?$/g,host:'demo'  })
 }
 
 //hornbill.use(x , {urlRegTest:/\.js$/g,host:'fx' , after: true})
