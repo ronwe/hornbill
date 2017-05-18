@@ -112,7 +112,7 @@ function writeRes (req , res , opt , status , body, header , debugStr){
 	try{
 		sendToRender(req , res , opt, {
 			'status' : status,
-			'header' : header || {'Content-Type': 'text/plain','Cache-Control': 'no-cache,no-store' ,  'serv    ice' :ServerHead },
+			'header' : header || {'Content-Type': 'text/plain','Cache-Control': 'no-cache,no-store' ,  'service' :ServerHead },
 			'body' :body 
 		})
 		

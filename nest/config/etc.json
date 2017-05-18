@@ -15,5 +15,7 @@
     ".js" : {"compiler" : "combo.js" ,"contentType" : "application/x-javascript"}
     ,".css" : {"compiler" : "scss.js" ,"contentType" : "text/css" }
     ,".svg" : {"contentType" : "image/svg+xml" }
+    ,".appcache" : {"contentType" : "text/cache-manifest" }
+    ,".manifest" : {"contentType" : "text/cache-manifest" }
 },
 "onPort":6001}

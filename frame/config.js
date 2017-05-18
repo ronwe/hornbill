@@ -49,6 +49,7 @@ function wrapExpt(configPath ,extConfig){
 		if (process.env.NODE_ENV == 'production') {
 			exports.etc.watchingTpl = false
 		}	
+		exports.site.LaunchVersion = process.env.VERSION || (+new Date).toString().match(/.{1,5}/g).join('.') 
 	}
 	extendFromOpt()
 }
