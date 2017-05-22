@@ -43,7 +43,7 @@ exports.start = function(options){
 	options = options || {}
 	router.setGlobal(options)
 	tryWatching()
-	start(router.route , config.etc.onPort || 8888)
+	start(router.route , config.etc.onPort || 80)
 }
 
 exports.connect = router.connect

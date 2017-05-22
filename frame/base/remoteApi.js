@@ -56,7 +56,7 @@ function create(req ,res , notify ,lib_opt) {
 			var proxyHeaders = reqHeaders
 
 			if (!lib_opt.noAutoHeaders){
-				var proxyDomain = ['snakeproxy' ,'mls-time','XREF', 'seashell' , 'clientIp' , 'referer' , 'cookie' , 'user-agent' ]
+				var proxyDomain = ['x-requested-with','XREF', 'clientIp' , 'referer' , 'cookie' , 'user-agent' ]
 				proxyHeaders.reqHost = req.headers.host
 				proxyHeaders.requrl = req.url
 				proxyHeaders.targetEnd = hostSource

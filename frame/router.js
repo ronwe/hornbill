@@ -138,7 +138,7 @@ function handleRoute(request ,response , virtualHostName  , reqUrl){
 	if (suffix  ) {
 		if (response.setHeader && ['.ttf' , '.woff','.eot' , '.svg'].indexOf(suffix) !== -1) response.setHeader('Access-Control-Allow-Origin' , '*')
         // 查找对应compiler    
-        if (response.setHeader && suffix_conf) response.setHeader('content-type', suffix_conf.contentType || 'text/plain')
+        if (response.setHeader && suffix_conf) response.setHeader('Content-Type', suffix_conf.contentType || 'text/plain')
 
         var staticCompiler = suffix_conf && suffix_conf.compiler 
         if (staticCompiler) staticCompiler = path.resolve(config.path.staticCompiler , staticCompiler) 
