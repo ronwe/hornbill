@@ -1,3 +1,4 @@
+var path = require('path')
 try	{
 	var sass = require('node-sass')
 }catch(err){}
@@ -5,12 +6,15 @@ try	{
 /*
  * https://github.com/sass/node-sass
  * */
+var lib_sass_path = path.join(__dirname ,'../stylesheets')
+
 function loadMod(modPath , modName , cbk){
 
     var mod_full_path = modPath + '/scss/' + modName + '.scss'
 	sass.render({
 		file: mod_full_path,
-		//includePaths: [  ],
+		indentedSyntax: true,
+		includePaths: [ lib_sass_path],
 		outputStyle: 'compressed'
 	}, function(err, result) { 
 		if (err) return cbk(err)
@@ -36,7 +40,7 @@ exports.compile = function(opt , cbk){
 		mods.forEach(function (m){
 			var enum_ret = result[m]
 			if (enum_ret.err) {
-				body += '/*' + enum_ret.err +'*/'
+				body += '/*' + m + ' compile error ['  + enum_ret.err +'] */'
 			}else{
 				body += enum_ret.context
 			}

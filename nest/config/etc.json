@@ -10,6 +10,7 @@
 "compiler" : true ,
 "mockOff" : false,
 "loadDepency" : false,
+"preStaticRewrite" : {"??":"~!"},
 "cpuNums":"1",
 "compile" : {
     ".js" : {"compiler" : "combo.js" ,"contentType" : "application/x-javascript"}

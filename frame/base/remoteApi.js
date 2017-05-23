@@ -12,6 +12,7 @@ var agent = config.etc.maxSockets ? new keepAliveAgent({ maxSockets: config.etc.
 
 function create(req ,res , notify ,lib_opt) {
 	lib_opt = lib_opt || {}
+	var proxyDomain = config.api.ProxyHeaders || ['x-requested-with','XREF', 'clientIp' , 'referer' , 'cookie' , 'user-agent' ]
     return function(remoteUri , method, reqAct , rawData){
 		var reqHeaders = reqAct ? {'request' : reqAct} : {}
 		var lib_http_option
@@ -56,7 +57,6 @@ function create(req ,res , notify ,lib_opt) {
 			var proxyHeaders = reqHeaders
 
 			if (!lib_opt.noAutoHeaders){
-				var proxyDomain = ['x-requested-with','XREF', 'clientIp' , 'referer' , 'cookie' , 'user-agent' ]
 				proxyHeaders.reqHost = req.headers.host
 				proxyHeaders.requrl = req.url
 				proxyHeaders.targetEnd = hostSource

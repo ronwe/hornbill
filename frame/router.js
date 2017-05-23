@@ -85,6 +85,16 @@ function processStack(middleware , request ,response , virtualHostName , init_va
 function route(request ,response ) {
     //console.log('%s / %s' ,request.headers.host  , request.url )
 	try{
+		var STATIC_PRE = config.etc.preStaticRewrite
+		//静态资源前缀rewrite
+		if (STATIC_PRE && request.url.indexOf('.') > 1){
+			var static_url = request.url.slice(1)
+			for (var pre in STATIC_PRE){
+				if (static_url.indexOf(pre) !== 0) continue
+				request.url = '/' +  STATIC_PRE[pre] + static_url.slice(pre.length)
+				break
+			}
+		}
 		var reqUrl  = url.parse('http://' + request.headers.host  + request.url , true)
 	}catch(err){
 		console.log ('Route Parse Error:' , request.url)
@@ -186,18 +196,19 @@ function handleRoute(request ,response , virtualHostName  , reqUrl){
 				}
 
 				var CompilerInst = require(staticCompiler)
-				comboFile(reqPath , function(file , read_to){
-					CompilerInst.compile(
-						{ 'app' : hostPath ,'modPath' : static_root_path , 'mods' : file} 
-						, function(err , context){
-							if (err) {
-								echoError(err)
-							} else {
-								read_to.end(context.toString())
-							}
+				//comboFile(reqPath , function(file , read_to){
+				//})
+				//全部交给编译器
+				CompilerInst.compile(
+					{ 'app' : hostPath ,'modPath' : static_root_path , 'mods' : reqPath} 
+					, function(err , context){
+						if (err) {
+							echoError(err)
+						} else {
+							response.end(context.toString())
 						}
-					)
-				})
+					}
+				)
 					
 			})
             

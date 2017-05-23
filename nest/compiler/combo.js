@@ -9,6 +9,7 @@ exports.compile = function(opt , cbk){
 	if (!CompilerBase.combo) return cbk('compiler doesnt exists')
 	opt = opt || {}
 	var opt_mut = extend({} , opt )
+	opt_mut.mods = opt_mut.mods.replace(/\,/g,'+')
 	if (opt_mut.mods.slice(0,1) === '!'){
 		opt_mut.loadDepency = false 
 		opt_mut.mods = opt_mut.mods.slice(1)
@@ -17,11 +18,18 @@ exports.compile = function(opt , cbk){
 	}
 
 	function miniFy(str){		
+		if (config.etc.watchingTpl){
+			return str
+		}
 		var minied_code = uglifyjs.minify(str , {fromString : true})
 		return minied_code && minied_code.code
 	}
-	opt_mut.traverser = function(data){
-		return miniFy(data)	
+	opt_mut.traverser = function(data,modName , depencies,err){
+		if (err){
+			return data 
+		}else{
+			return miniFy(data)	
+		}
 	}
 	CompilerBase.combo.compile(opt_mut, cbk)
 	
