@@ -200,7 +200,7 @@ function handleRoute(request ,response , virtualHostName  , reqUrl){
 				//})
 				//全部交给编译器
 				CompilerInst.compile(
-					{ 'app' : hostPath ,'modPath' : static_root_path , 'mods' : reqPath} 
+					{ 'app' : hostPath ,'modPath' : static_root_path , 'mods' : reqPath,'suffix' : suffix} 
 					, function(err , context){
 						if (err) {
 							echoError(err)

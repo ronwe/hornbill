@@ -9,7 +9,7 @@ exports.compile = function(opt , cbk){
 	if (!CompilerBase.combo) return cbk('compiler doesnt exists')
 	opt = opt || {}
 	var opt_mut = extend({} , opt )
-	opt_mut.mods = opt_mut.mods.replace(/\,/g,'+')
+	opt_mut.mods = opt_mut.mods.replace(/\,/g,'+').replace(new RegExp(opt.suffix,'g'),'') + opt.suffix
 	if (opt_mut.mods.slice(0,1) === '!'){
 		opt_mut.loadDepency = false 
 		opt_mut.mods = opt_mut.mods.slice(1)
