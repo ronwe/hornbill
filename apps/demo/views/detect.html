@@ -20,4 +20,20 @@ window.setTimeout(function(){
 <script src="/detective.js"></script>
 -->
 <script>var st = +new Date</script>
-<script src="/fingerprint.js"></script>
+<script>
+;(function(){
+var f = document.createElement('script')
+f.type= 'text/javascript'
+f.onload = f.onreadystatechange  = function(){
+	var r = f.readyState
+	if (undefined === r || r === 'loaded' || r === 'complete'){
+		window.__getFingerPrint(function(token ,info){
+			alert(token)
+				console.log(token,info,Object.keys(info).length)
+		})
+	}
+}
+f.src = '//m.elongstatic.com/common/fe/2017/js/fingerprint.js?a=1.0.3'
+document.getElementsByTagName("head")[0].appendChild(f)
+})()
+</script>

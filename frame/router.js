@@ -168,7 +168,9 @@ function handleRoute(request ,response , virtualHostName  , reqUrl){
 			files.forEach(function(file){
 				file = filterFilePath(file) 
 				if (!file) return combined_count_down--
-				file += suffix
+				if (file.slice(-suffix.length) !== suffix){ 
+					file += suffix
+				}
 				var pipe_stream = files_count > 1 ? (new EchoStream({'cbk' : function(content){
 					response.write(content)
 					combined_count_down--
