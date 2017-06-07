@@ -11,6 +11,7 @@
  */
 
 var zlib = require('zlib');
+var path = require('path')
 
 /**
  * Supported content-encoding methods.
@@ -24,16 +25,6 @@ var methods = {
 
 /**
  * Compress response data with gzip/deflate.
- *
- * Filter:
- *
- * A `filter` callback function may be passed to
- * replace the default logic of:
- *
- *     exports.filter = function(req, res){
- *       var type = res.getHeader('Content-Type') || '';
- *       return type.match(/json|text|javascript/);
- *     };
  *
  * Options:
  *
@@ -61,6 +52,8 @@ module.exports = function compress(options) {
       , end = res.end
       , stream
       , method;
+	var suffix = path.extname(req.url)	
+	if (suffix && ['.js','.css'].indexOf(suffix) === -1) accept = null 
 
     // vary
     res.setHeader('Vary', 'Accept-Encoding');
