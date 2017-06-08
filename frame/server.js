@@ -28,7 +28,7 @@ function tryWatching(){
 			dir.forEach((d) => {
 				if ('.' === d.slice(0,1)) return 
 				d = path.resolve(config.path.appPath , d)
-				;['controller' , 'model' , 'views'].forEach((s) => {
+				;['mock','controller' , 'model' , 'views'].forEach((s) => {
 					s = path.resolve(d,s)
 					if (fs.existsSync(s)) watches.push(s)
 				})
