@@ -12,7 +12,6 @@ var eventLib = require(config.path.base + 'evtHandle.js')
 eventLib.prepareData(siteInfo)
 
 var cookieHandle = require(config.path.base + 'cookie.js') 
-var apiShrink = require(config.path.lib + 'api/shrink.js')
 	,EchoStream = require(config.path.lib + 'stream.js').write
 
 var ServerHead = 'hornbill living in ' + config.etc.hostID
@@ -242,16 +241,12 @@ Controller.prototype = {
         }
 		function cbk(data , err){
 			if (!err){ 
-                //api结构析构
-                if (opt.shrink && apiShrink) {
-                    var error_from_api = apiShrink.parse(data)
-                }
 				if (mSelf._prevData){
 					data = base.array_merge(mSelf._prevData , data)
 					delete mSelf._prevData
 				}
         
-				callBack.call(mSelf , data , error_from_api || {})
+				callBack.call(mSelf , data )
 			}else{
 				writeRes(mSelf.req , mSelf.res , mSelf.opt , 503 ,'error raised' , null , mSelf.req.url)
 				var splitor = "\n--->\n"

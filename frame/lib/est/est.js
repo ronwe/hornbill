@@ -240,6 +240,9 @@ function compile(tplpath, tplname, compiledFile, tplPre, callBack) {
 					break
 				case '=':
 					switch(funcCon[1]) {
+						case '%' :
+							fillCmpl( 'try {__htm += JSON.stringify(' + stripBlank(funcCon.substr(2)) + ");}catch(err){}\n" , true)
+							break
 						case '=':
 							fillCmpl( '__htm +=' + stripBlank(funcCon.substr(2)) + ";\n" , true)
 							break
