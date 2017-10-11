@@ -118,7 +118,6 @@ function create(req ,res , notify ,lib_opt) {
                  agent : agent,
                  method : method ,
             }
-			console.log(method , http_options ,data)
             var request_timer
             var st1 = new Date;
             var request = http.request(http_options, function(response) {
