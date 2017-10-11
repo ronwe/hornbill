@@ -18,11 +18,28 @@ function create(req ,res , notify ,lib_opt) {
 		var lib_http_option
 		if (!method ) { method = 'GET'}
 		var hostSource = 'web'
+		var noUriAutoAppend = false
+
+
 		if (lib_opt.remoteHtml){
 			try{
 				lib_http_option = url.parse(remoteUri)
 				var host = lib_http_option.host
 			}catch(err){}
+		} else if (base.isObject(remoteUri)){
+			hostSource = remoteUri.host || hostSource				
+
+			var strict_post_data = remoteUri.post
+				,strict_get_data = remoteUri.get
+			if (strict_get_data){
+				noUriAutoAppend = true	
+			}
+			if (strict_post_data){
+				method = 'POST'
+			}
+			remoteUri = remoteUri.url
+			var host = hosts[hostSource]	
+
 		} else {
 			if (remoteUri.indexOf('::') > 0){
 				remoteUri = remoteUri.split('::')
@@ -30,14 +47,14 @@ function create(req ,res , notify ,lib_opt) {
 				remoteUri = remoteUri[1]
 			}
 			var host = hosts[hostSource]	
-			if (!host){
-				var splitor = "\n--->\n"
-				var errLogTxt = splitor + new Date()
-				+ splitor + 'url:'+ req.url
-				+ splitor + 'apiUrl:' + remoteUri 
-				+ splitor + 'Data Source: ' + hostSource +  ' is not configed' + "\n<---\n"
-				host = config.api.host	
-			}
+		}
+		if (!host){
+			var splitor = "\n--->\n"
+			var errLogTxt = splitor + new Date()
+			+ splitor + 'url:'+ req.url
+			+ splitor + 'apiUrl:' + remoteUri 
+			+ splitor + 'Data Source: ' + hostSource +  ' is not configed' + "\n<---\n"
+			host = config.api.host	
 		}
 		var _origin_remoteUri = remoteUri
 
@@ -51,6 +68,10 @@ function create(req ,res , notify ,lib_opt) {
 			if ('undefined' == typeof data && 'function' != typeof evt){
 				data = evt
 				evt = null
+			}
+			if (strict_post_data) {
+				//设置了post数据
+				data = strict_post_data 
 			}
 
             var data = querystring.stringify(data)
@@ -67,19 +88,27 @@ function create(req ,res , notify ,lib_opt) {
 				}
 			}
            
+			remoteUri = remoteUri.trim()
+			if ('&$' ==  remoteUri.slice(-2)) {
+				remoteUri = remoteUri.slice(0,-2) 
+				noUriAutoAppend = true
+			}
+			var append2Uri = ''
+			if (strict_get_data) {
+				append2Uri = querystring.stringify(strict_get_data)
+			}
             if ('GET' == method){
-                if (data) {
-					remoteUri = remoteUri.trim()
-					if ('&$' ==  remoteUri.slice(-2)) remoteUri = remoteUri.slice(0,-2) 
-					else	remoteUri += (remoteUri.indexOf('?')>0 ? '&' : '?') + data
-					
+				if (false === noUriAutoAppend && data){
+					append2Uri = data + (append2Uri? '&' :'?') + append2Uri 
 				}
                 data = ''
 			}else{
 				proxyHeaders['Content-Type'] =  'application/x-www-form-urlencoded'
 			}
+			if (append2Uri) {
+				remoteUri += (remoteUri.indexOf('?')>0 ? '&' : '?') + append2Uri 
+			}
             proxyHeaders['Content-Length'] =  Buffer.byteLength(data,'utf8') 
-
                     
             var http_options = lib_http_option || {
                  host : host,
@@ -89,6 +118,7 @@ function create(req ,res , notify ,lib_opt) {
                  agent : agent,
                  method : method ,
             }
+			console.log(method , http_options ,data)
             var request_timer
             var st1 = new Date;
             var request = http.request(http_options, function(response) {
