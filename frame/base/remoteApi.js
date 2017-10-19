@@ -99,7 +99,7 @@ function create(req ,res , notify ,lib_opt) {
 			}
             if ('GET' == method){
 				if (false === noUriAutoAppend && data){
-					append2Uri = data + (append2Uri? '&' :'?') + append2Uri 
+					append2Uri = append2Uri? ( data +  '&'  + append2Uri ) : data
 				}
                 data = ''
 			}else{
@@ -118,6 +118,7 @@ function create(req ,res , notify ,lib_opt) {
                  agent : agent,
                  method : method ,
             }
+			console.log(http_options)
             var request_timer
             var st1 = new Date;
             var request = http.request(http_options, function(response) {
