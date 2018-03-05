@@ -213,7 +213,7 @@ Controller.prototype = {
 	},
     bridge : function(remoteUri ,reqAct , method, rawData){
         var data =  this.req.__get;
-        if ( this.req.method == 'POST'){
+        if ( this.req.method == 'POST' && base.isString(remoteUri)){
 			var querys = querystring.stringify(this.req.__get)
             if (querys) remoteUri +=  (remoteUri.indexOf('?') > 0 ?'&' : '?') + querys 
 			data = this.req.__post 
