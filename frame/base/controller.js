@@ -411,7 +411,7 @@ function render(tplName , data , callBack){
 				html = _before_html 
 			}
 
-			if (!err) {
+			if (!err && false !== html && null !== html ) {
 				//html += '<script>var l={};l.req=' + req.__request_time.getTime() + ';l.h=' + (new Date).getTime()+ '</script>'
 				writeRes(req , res ,opt, 200 , html , {'Content-Type': 'text/html;charset=utf-8' , 'Cache-Control': 'no-cache,no-store' ,'service' :ServerHead} , req.url)
 			}else{
