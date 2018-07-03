@@ -1,9 +1,9 @@
 exports.getHandler = function(req , res){
         var cookies = {}
 		if (!('__addCookie' in req))	req.__addCookie = []
-			
+
         if (! req.__cookies) {
-         //read cookie 
+         //read cookie
             req.headers.cookie && req.headers.cookie.split(';').forEach(function( cookie ) {
 				var ppos = cookie.indexOf('=')
 				var p1 = cookie.slice(0 , ppos)
@@ -17,20 +17,18 @@ exports.getHandler = function(req , res){
                 });
             req.__cookies = cookies
          } else {
-            cookies = req.__cookies    
+            cookies = req.__cookies
          }
-		 var host = req.headers.host.split(':')[0]
-		 if (host) host = 'domain=.' + host.split('.').slice(-2).join('.') +';'
-		 else host = ''
-         console.log(host)
 
 		function set(name , val , expires ,set_host){
 			if (set_host) set_host = 'domain=' + set_host + ';'
+			else set_host = ''
+
 			if (!res) return
 			if (arguments.length ==  1){
 				var cookie_v = name
 			}else{
-				var cookie_v = encodeURIComponent(name) + '=' + encodeURIComponent(val) + ';Path=/;'+ (set_host || host) 
+				var cookie_v = encodeURIComponent(name) + '=' + encodeURIComponent(val) + ';Path=/;'+ (set_host  )
 				if (expires)
 					cookie_v += 'expires='+ expires.toGMTString()+';'
 
@@ -48,12 +46,12 @@ exports.getHandler = function(req , res){
 		    }
 		 }
 		 function get(name) {
-			return cookies[name]	 
+			return cookies[name]
 		 }
 		function clear(name){
-			return set(name, '') 
+			return set(name, '')
 		}
 
 		 return {set:set , get :get, clear:clear}
-   
-    }    
+
+    }
